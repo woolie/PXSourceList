@@ -161,7 +161,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
     // Expand items that are displayed as always expanded
 
     if( [self.delegateDataSourceProxy conformsToProtocol:@protocol(PXSourceListDataSource)] &&
-        [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:isGroupAlwaysExpanded:)] )
+       [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:isGroupAlwaysExpanded:)] )
     {
         for( NSUInteger i = 0; i < self.numberOfGroups; ++i )
         {
@@ -349,6 +349,8 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
     return frame;
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 - (NSRect) frameOfCellAtColumn:(NSInteger) column row:(NSInteger) row
 {
@@ -358,9 +360,9 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
     id item = [self itemAtRow:row];
 
     NSCell* cell = [self preparedCellAtColumn:column row:row];
-    NSSize cellSize = [cell cellSize];
+    NSSize cellSize = cell.cellSize;
 
-    if (!([cell type] == NSImageCellType) && !([cell type] == NSTextCellType))
+    if (!(cell.type == NSImageCellType) && !(cell.type == NSTextCellType))
         cellSize = [cell cellSizeForBounds:[super frameOfCellAtColumn:column row:row]];
 
     NSRect cellFrame = [super frameOfCellAtColumn:column row:row];
@@ -402,20 +404,24 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
     }
 }
 
+#pragma clang diagnostic pop
 
 // This method calculates and returns the size of the badge for the row index passed to the method. If the
 // row for the row index passed to the method does not have a badge, then NSZeroSize is returned.
 
 - (NSSize) sizeOfBadgeAtRow:(NSInteger) rowIndex
 {
+    NSSize badgeSize = NSZeroSize;
+
     id rowItem = [self itemAtRow:rowIndex];
 
-    if (![self itemHasBadge:rowItem])
-        return NSZeroSize;
+    if( [self itemHasBadge:rowItem] )
+    {
+        self.reusableBadgeCell.integerValue = [self badgeValueForItem:rowItem];
+        badgeSize = (NSSize){ fmax(self.reusableBadgeCell.cellSize.width, kMinBadgeWidth), kBadgeHeight };
+    }
 
-    self.reusableBadgeCell.integerValue = [self badgeValueForItem:rowItem];
-
-    return (NSSize){ fmax(self.reusableBadgeCell.cellSize.width, kMinBadgeWidth), kBadgeHeight };
+    return badgeSize;
 }
 
 - (void) viewDidMoveToSuperview
@@ -433,62 +439,62 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 
     // We only do drawing here if the Source List is cell-based.
 
-    if( self.isViewBasedSourceList )
-        return;
-
-    id item = [self itemAtRow:rowIndex];
-
-    // Draw an icon if the item has one
-
-    if( ![self isGroupItem:item] && [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:itemHasIcon:)] )
+    if( self.isViewBasedSourceList == NO )
     {
-        if( [self.delegateDataSourceProxy sourceList:self itemHasIcon:item] )
+        id item = [self itemAtRow:rowIndex];
+
+        // Draw an icon if the item has one
+
+        if( ![self isGroupItem:item] && [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:itemHasIcon:)] )
         {
-            NSRect cellFrame = [self frameOfCellAtColumn:0 row:rowIndex];
-            NSSize iconSize = [self iconSize];
-            NSRect iconRect = NSMakeRect( NSMinX(cellFrame) - iconSize.width - kIconSpacing, NSMidY(cellFrame) - (iconSize.height * 0.5), iconSize.width, iconSize.height);
-
-            if( [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:iconForItem:)] )
+            if( [self.delegateDataSourceProxy sourceList:self itemHasIcon:item] )
             {
-                NSImage* icon = [self.delegateDataSourceProxy sourceList:self iconForItem:item];
+                NSRect cellFrame = [self frameOfCellAtColumn:0 row:rowIndex];
+                NSSize iconSize = [self iconSize];
+                NSRect iconRect = NSMakeRect( NSMinX(cellFrame) - iconSize.width - kIconSpacing, NSMidY(cellFrame) - (iconSize.height * 0.5), iconSize.width, iconSize.height);
 
-                if( icon )
+                if( [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:iconForItem:)] )
                 {
-                    NSSize actualIconSize = icon.size;
+                    NSImage* icon = [self.delegateDataSourceProxy sourceList:self iconForItem:item];
 
-                    // If the icon is *smaller* than the size retrieved from the -iconSize property, make sure we
-                    // reduce the size of the rectangle to draw the icon in, so that it is not stretched.
-
-                    if( (actualIconSize.width < iconSize.width) || (actualIconSize.height < iconSize.height) )
+                    if( icon )
                     {
-                        iconRect = NSMakeRect( NSMidX( iconRect) - (actualIconSize.width * 0.5),
-                                               NSMidY( iconRect) - (actualIconSize.height * 0.5),
-                                               actualIconSize.width,
-                                               actualIconSize.height );
-                    }
+                        NSSize actualIconSize = icon.size;
 
-                    [icon drawInRect:iconRect
-                            fromRect:NSZeroRect
-                           operation:NSCompositeSourceOver
-                            fraction:1
-                      respectFlipped:YES
-                               hints:nil];
+                        // If the icon is *smaller* than the size retrieved from the -iconSize property, make sure we
+                        // reduce the size of the rectangle to draw the icon in, so that it is not stretched.
+
+                        if( (actualIconSize.width < iconSize.width) || (actualIconSize.height < iconSize.height) )
+                        {
+                            iconRect = NSMakeRect( NSMidX( iconRect) - (actualIconSize.width * 0.5),
+                                                  NSMidY( iconRect) - (actualIconSize.height * 0.5),
+                                                  actualIconSize.width,
+                                                  actualIconSize.height );
+                        }
+
+                        [icon drawInRect:iconRect
+                                fromRect:NSZeroRect
+                               operation:NSCompositeSourceOver
+                                fraction:1
+                          respectFlipped:YES
+                                   hints:nil];
+                    }
                 }
             }
         }
-    }
 
-    // Draw the badge if the item has one
+        // Draw the badge if the item has one
 
-    if( [self itemHasBadge:item] )
-    {
-        NSRect rowRect = [self rectOfRow:rowIndex];
-        NSSize badgeSize = [self sizeOfBadgeAtRow:rowIndex];
+        if( [self itemHasBadge:item] )
+        {
+            NSRect rowRect = [self rectOfRow:rowIndex];
+            NSSize badgeSize = [self sizeOfBadgeAtRow:rowIndex];
 
-        NSRect badgeFrame = (NSRect){ { NSMaxX( rowRect ) - badgeSize.width - kRowRightMargin, NSMidY( rowRect ) - (badgeSize.height * 0.5) },
-                                      { badgeSize.width, badgeSize.height } };
+            NSRect badgeFrame = (NSRect){ { NSMaxX( rowRect ) - badgeSize.width - kRowRightMargin, NSMidY( rowRect ) - (badgeSize.height * 0.5) },
+                { badgeSize.width, badgeSize.height } };
 
-        [self drawBadgeForRow:rowIndex inRect:badgeFrame];
+            [self drawBadgeForRow:rowIndex inRect:badgeFrame];
+        }
     }
 }
 
@@ -607,7 +613,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 
     if( ![self isGroupItem:item] && [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:shouldSelectItem:)] )
         return [self.delegateDataSourceProxy sourceList:self shouldSelectItem:item];
-
+    
     return ![self isGroupItem:item];
 }
 
@@ -615,7 +621,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 {
     if(![self isGroupItem:item] && [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:shouldEditItem:)])
         return [self.delegateDataSourceProxy sourceList:self shouldEditItem:item];
-
+    
     return ![self isGroupItem:item];
 }
 

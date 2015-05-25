@@ -87,12 +87,12 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
     // Register the new delegate to receive notifications
 
     [self registerDelegateToReceiveNotification:PXSLSelectionIsChangingNotification withSelector:@selector(sourceListSelectionIsChanging:)];
-	[self registerDelegateToReceiveNotification:PXSLSelectionDidChangeNotification withSelector:@selector(sourceListSelectionDidChange:)];
-	[self registerDelegateToReceiveNotification:PXSLItemWillExpandNotification withSelector:@selector(sourceListItemWillExpand:)];
-	[self registerDelegateToReceiveNotification:PXSLItemDidExpandNotification withSelector:@selector(sourceListItemDidExpand:)];
-	[self registerDelegateToReceiveNotification:PXSLItemWillCollapseNotification withSelector:@selector(sourceListItemWillCollapse:)];
-	[self registerDelegateToReceiveNotification:PXSLItemDidCollapseNotification withSelector:@selector(sourceListItemDidCollapse:)];
-	[self registerDelegateToReceiveNotification:PXSLDeleteKeyPressedOnRowsNotification withSelector:@selector(sourceListDeleteKeyPressedOnRows:)];
+    [self registerDelegateToReceiveNotification:PXSLSelectionDidChangeNotification withSelector:@selector(sourceListSelectionDidChange:)];
+    [self registerDelegateToReceiveNotification:PXSLItemWillExpandNotification withSelector:@selector(sourceListItemWillExpand:)];
+    [self registerDelegateToReceiveNotification:PXSLItemDidExpandNotification withSelector:@selector(sourceListItemDidExpand:)];
+    [self registerDelegateToReceiveNotification:PXSLItemWillCollapseNotification withSelector:@selector(sourceListItemWillCollapse:)];
+    [self registerDelegateToReceiveNotification:PXSLItemDidCollapseNotification withSelector:@selector(sourceListItemDidCollapse:)];
+    [self registerDelegateToReceiveNotification:PXSLDeleteKeyPressedOnRowsNotification withSelector:@selector(sourceListDeleteKeyPressedOnRows:)];
 }
 
 - (void) setDataSource:(id<PXSourceListDataSource>) dataSource
@@ -152,82 +152,84 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
     return [NSMethodSignature signatureWithObjCTypes:description.types];
 }
 
-- (void) forwardInvocation:(NSInvocation*) anInvocation
+- (void) forwardInvocation:(NSInvocation*) invocation
 {
-    SEL sourceSelector = anInvocation.selector;
+    SEL sourceSelector = invocation.selector;
 
     // Give the Source List a chance to handle the selector first (this is a bit of a hack for the time being
     // and should be changed).
 
-    if( [self.sourceList respondsToSelector:sourceSelector] )
+    PXSourceList* sourceList = self.sourceList;
+
+    if( [sourceList respondsToSelector:sourceSelector] )
     {
-        [anInvocation invokeWithTarget:self.sourceList];
-        return;
+        [invocation invokeWithTarget:sourceList];
     }
-
-    id forwardingObject = [self forwardingObjectForSelector:sourceSelector];
-    NSDictionary* forwardingInformation = [[self class] forwardingInformationForSelector:sourceSelector];
-
-    if(!forwardingObject || !forwardingInformation)
+    else
     {
-        [super forwardInvocation:anInvocation];
-        return;
-    }
+        id forwardingObject = [self forwardingObjectForSelector:sourceSelector];
+        NSDictionary* forwardingInformation = [[self class] forwardingInformationForSelector:sourceSelector];
 
-    SEL forwardingSelector = NSSelectorFromString( forwardingInformation[forwardingMapForwardingMethodNameKey] );
-
-    NSArray* forwardedArgumentIndexes = forwardingInformation[forwardingMapForwardedArgumentIndexesKey];
-    anInvocation.selector = forwardingSelector;
-
-    NSMethodSignature* methodSignature = [forwardingObject methodSignatureForSelector:forwardingSelector];
-
-    // Catch the case where we have advertised ourselves as responding to a selector required by NSOutlineView
-    // for a valid dataSource but the corresponding PXSourceListDataSource method isn't implemented by the dataSource.
-
-    if( [__requiredOutlineViewDataSourceMethods containsObject:NSStringFromSelector(sourceSelector)]
-        && ![self.dataSource respondsToSelector:forwardingSelector] )
-    {
-        return;
-    }
-
-    // Modify the arguments in the invocation if the source and target selector arguments are different.
-    //
-    // The forwardedArgumentIndexes array contains the indexes of arguments in the original invocation that we want
-    // to use in our modified invocation. E.g. @[@0, @2] means take the first and third arguments and only use them
-    // when forwarding. We want to do this when the forwarded selector has a different number of arguments to the
-    // source selector (see +addCustomMethodNameMappings).
-    //
-    // Note that this implementation only works if the arguments in `forwardedArgumentIndexes` are monotonically
-    // increasing (which is good enough for now).
-
-    if( forwardedArgumentIndexes )
-    {
-        // self and _cmd are arguments 0 and 1.
-
-        NSUInteger invocationArgumentIndex = 2;
-        for( NSNumber* newArgumentIndex in forwardedArgumentIndexes )
+        if(!forwardingObject || !forwardingInformation)
         {
-            NSInteger forwardedArgumentIndex = newArgumentIndex.integerValue;
+            [super forwardInvocation:invocation];
+        }
+        else
+        {
+            SEL forwardingSelector = NSSelectorFromString( forwardingInformation[forwardingMapForwardingMethodNameKey] );
 
-            // Handle the case where we want to use (for example) the third argument from the original invocation
-            // as the second argument of our modified invocation.
+            NSArray* forwardedArgumentIndexes = forwardingInformation[forwardingMapForwardedArgumentIndexesKey];
+            invocation.selector = forwardingSelector;
 
-            if( invocationArgumentIndex != (NSUInteger)forwardedArgumentIndex )
+            NSMethodSignature* methodSignature = [forwardingObject methodSignatureForSelector:forwardingSelector];
+
+            // Catch the case where we have advertised ourselves as responding to a selector required by NSOutlineView
+            // for a valid dataSource but the corresponding PXSourceListDataSource method isn't implemented by the dataSource.
+
+            if( !([__requiredOutlineViewDataSourceMethods containsObject:NSStringFromSelector(sourceSelector)] &&
+                  ![self.dataSource respondsToSelector:forwardingSelector]) )
             {
-                NSUInteger argumentSize = 0;
-                NSGetSizeAndAlignment( [methodSignature getArgumentTypeAtIndex:invocationArgumentIndex], &argumentSize, NULL );
+                // Modify the arguments in the invocation if the source and target selector arguments are different.
+                //
+                // The forwardedArgumentIndexes array contains the indexes of arguments in the original invocation that we want
+                // to use in our modified invocation. E.g. @[@0, @2] means take the first and third arguments and only use them
+                // when forwarding. We want to do this when the forwarded selector has a different number of arguments to the
+                // source selector (see +addCustomMethodNameMappings).
+                //
+                // Note that this implementation only works if the arguments in `forwardedArgumentIndexes` are monotonically
+                // increasing (which is good enough for now).
 
-                void* argument = malloc( argumentSize );
-                [anInvocation getArgument:argument atIndex:forwardedArgumentIndex + 2]; // Take self and _cmd into account again.
-                [anInvocation setArgument:argument atIndex:(NSInteger)invocationArgumentIndex];
-                free( argument );
+                if( forwardedArgumentIndexes )
+                {
+                    // self and _cmd are arguments 0 and 1.
+
+                    NSUInteger invocationArgumentIndex = 2;
+                    for( NSNumber* newArgumentIndex in forwardedArgumentIndexes )
+                    {
+                        NSInteger forwardedArgumentIndex = newArgumentIndex.integerValue;
+
+                        // Handle the case where we want to use (for example) the third argument from the original invocation
+                        // as the second argument of our modified invocation.
+
+                        if( invocationArgumentIndex != (NSUInteger)forwardedArgumentIndex )
+                        {
+                            NSUInteger argumentSize = 0;
+                            NSGetSizeAndAlignment( [methodSignature getArgumentTypeAtIndex:invocationArgumentIndex], &argumentSize, NULL );
+
+                            void* argument = malloc( argumentSize );
+                            [invocation getArgument:argument atIndex:forwardedArgumentIndex + 2]; // Take self and _cmd into account again.
+                            [invocation setArgument:argument atIndex:(NSInteger)invocationArgumentIndex];
+                            free( argument );
+                        }
+
+                        invocationArgumentIndex++;
+                    }
+                }
+
+                [invocation invokeWithTarget:forwardingObject];
             }
-
-            invocationArgumentIndex++;
         }
     }
-
-    [anInvocation invokeWithTarget:forwardingObject];
 }
 
 - (id) forwardingTargetForSelector:(SEL) aSelector
@@ -408,7 +410,7 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 
     if( outSelector )
         *outSelector = NSSelectorFromString(forwardingInfo[forwardingMapForwardingMethodNameKey]);
-    
+
     return YES;
 }
 
@@ -429,58 +431,58 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 
 - (void) registerDelegateToReceiveNotification:(NSString*) notification withSelector:(SEL) selector
 {
-	NSNotificationCenter* defaultCenter = [NSNotificationCenter defaultCenter];
+    NSNotificationCenter* defaultCenter = [NSNotificationCenter defaultCenter];
 
-	// Set the delegate as a receiver of the notification if it implements the notification method
+    // Set the delegate as a receiver of the notification if it implements the notification method
 
     if ([self.delegate respondsToSelector:selector] )
     {
-		[defaultCenter addObserver:self.delegate
-						  selector:selector
-							  name:notification
-							object:self.sourceList];
-	}
+        [defaultCenter addObserver:self.delegate
+                          selector:selector
+                              name:notification
+                            object:self.sourceList];
+    }
 }
 
 // Notification wrappers
 
 - (void) outlineViewSelectionIsChanging:(NSNotification*) notification
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLSelectionIsChangingNotification object:self.sourceList];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PXSLSelectionIsChangingNotification object:self.sourceList];
 }
 
 
 - (void) outlineViewSelectionDidChange:(NSNotification*) notification
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLSelectionDidChangeNotification object:self.sourceList];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PXSLSelectionDidChangeNotification object:self.sourceList];
 }
 
 - (void) outlineViewItemWillExpand:(NSNotification*) notification
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemWillExpandNotification
-														object:self.sourceList
-													  userInfo:[notification userInfo]];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemWillExpandNotification
+                                                        object:self.sourceList
+                                                      userInfo:[notification userInfo]];
 }
 
 - (void) outlineViewItemDidExpand:(NSNotification*) notification
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemDidExpandNotification
-														object:self.sourceList
-													  userInfo:[notification userInfo]];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemDidExpandNotification
+                                                        object:self.sourceList
+                                                      userInfo:[notification userInfo]];
 }
 
 - (void) outlineViewItemWillCollapse:(NSNotification*) notification
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemWillCollapseNotification
-														object:self.sourceList
-													  userInfo:[notification userInfo]];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemWillCollapseNotification
+                                                        object:self.sourceList
+                                                      userInfo:[notification userInfo]];
 }
 
 - (void) outlineViewItemDidCollapse:(NSNotification*) notification
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemDidCollapseNotification
-														object:self.sourceList
-													  userInfo:[notification userInfo]];
+    [[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemDidCollapseNotification
+                                                        object:self.sourceList
+                                                      userInfo:[notification userInfo]];
 }
 
 @end
