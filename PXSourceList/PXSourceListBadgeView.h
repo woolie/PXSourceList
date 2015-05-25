@@ -7,7 +7,7 @@
 //  This software is licensed under the New BSD License. Full details can be found in the README.
 //
 
-#import <Cocoa/Cocoa.h>
+@import Cocoa;
 
 /**
  `PXSourceListBadgeView` is an `NSControl` subclass which can be used for displaying Source List badges.
@@ -30,6 +30,7 @@
  isn't highlighted. When the row is highlighted, the badge is displayed with a white background and a blue text colour.
 
  */
+
 @interface PXSourceListBadgeView : NSControl
 
 ///---------------------------------------------------------------------------------------
@@ -40,7 +41,7 @@
  
  @since Requires the Mac OS X 10.7 SDK or above.
  */
-@property (assign, nonatomic) NSUInteger badgeValue;
+@property (nonatomic, assign) NSUInteger badgeValue;
 
 ///---------------------------------------------------------------------------------------
 /// @name Customising the badge appearance
@@ -55,7 +56,7 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-@property (strong, nonatomic) NSColor *textColor;
+@property (nonatomic, strong) NSColor* textColor;
 
 /**
  @brief Returns the custom background colour used to display the receiver.
@@ -67,6 +68,6 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-@property (strong, nonatomic) NSColor *backgroundColor;
+@property (nonatomic, strong) NSColor* backgroundColor;
 
 @end

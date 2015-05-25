@@ -7,15 +7,15 @@
 //  This software is licensed under the New BSD License. Full details can be found in the README.
 //
 
-#import <Foundation/Foundation.h>
+@import Foundation;
 #import "PXSourceList.h"
 
 @interface PXSourceListDelegateDataSourceProxy : NSProxy <NSOutlineViewDelegate, NSOutlineViewDataSource, PXSourceListDelegate, PXSourceListDataSource>
 
-@property (weak, nonatomic) PXSourceList *sourceList;
-@property (unsafe_unretained, nonatomic) id <PXSourceListDelegate> delegate;
-@property (unsafe_unretained, nonatomic) id <PXSourceListDataSource> dataSource;
+@property (nonatomic, weak) PXSourceList* sourceList;
+@property (nonatomic, unsafe_unretained) id<PXSourceListDelegate> delegate;
+@property (nonatomic, unsafe_unretained) id<PXSourceListDataSource> dataSource;
 
-- (id)initWithSourceList:(PXSourceList *)sourceList;
+- (instancetype) initWithSourceList:(PXSourceList*) sourceList;
 
 @end

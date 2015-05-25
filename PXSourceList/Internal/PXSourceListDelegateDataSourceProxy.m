@@ -10,203 +10,217 @@
 #import "PXSourceListDelegateDataSourceProxy.h"
 
 #import <objc/runtime.h>
+
 #import "PXSourceListPrivateConstants.h"
 #import "PXSourceListRuntimeAdditions.h"
 
 // Internal constants.
-static NSString * const forwardingMapForwardingMethodNameKey = @"methodName";
-static NSString * const forwardingMapForwardedArgumentIndexesKey = @"forwardedArgumentIndexes";
 
-static NSArray * __outlineViewDelegateMethods = nil;
-static NSArray * __outlineViewDataSourceMethods = nil;
-static NSArray * __requiredOutlineViewDataSourceMethods = nil;
+static NSString* const forwardingMapForwardingMethodNameKey = @"methodName";
+static NSString* const forwardingMapForwardedArgumentIndexesKey = @"forwardedArgumentIndexes";
+
+static NSArray* __outlineViewDelegateMethods = nil;
+static NSArray* __outlineViewDataSourceMethods = nil;
+static NSArray* __requiredOutlineViewDataSourceMethods = nil;
 
 // Cache the PXSourceListDelegate and PXSourceListDataSource method names so that if these methods are invoked on
 // us, we can quickly forward them to the delegate and dataSource using -forwardingTargetForSelector: without going
 // through -forwardInvocation:.
-static NSArray * __fastPathForwardingDelegateMethods = nil;
-static NSArray * __fastPathForwardingDataSourceMethods = nil;
+
+static NSArray* __fastPathForwardingDelegateMethods = nil;
+static NSArray* __fastPathForwardingDataSourceMethods = nil;
 
 // We want to suppress the warnings for protocol methods not being implemented. As a proxy we will forward these
 // messages to the actual delegate and data source.
+
 #pragma clang diagnostic ignored "-Wprotocol"
+
 @implementation PXSourceListDelegateDataSourceProxy
 
-+ (void)initialize
++ (void) initialize
 {
-    __outlineViewDelegateMethods = px_methodNamesForProtocol(@protocol(NSOutlineViewDelegate));
-    __outlineViewDataSourceMethods = px_methodNamesForProtocol(@protocol(NSOutlineViewDataSource));
-    __fastPathForwardingDelegateMethods = [self fastPathForwardingDelegateMethods];
-    __fastPathForwardingDataSourceMethods = px_methodNamesForProtocol(@protocol(PXSourceListDataSource));
+    if( [self class] == [PXSourceListDelegateDataSourceProxy class] )
+    {
+        __outlineViewDelegateMethods = px_methodNamesForProtocol(@protocol(NSOutlineViewDelegate));
+        __outlineViewDataSourceMethods = px_methodNamesForProtocol(@protocol(NSOutlineViewDataSource));
+        __fastPathForwardingDelegateMethods = [self fastPathForwardingDelegateMethods];
+        __fastPathForwardingDataSourceMethods = px_methodNamesForProtocol(@protocol(PXSourceListDataSource));
 
-    __requiredOutlineViewDataSourceMethods = @[NSStringFromSelector(@selector(outlineView:numberOfChildrenOfItem:)),
-                                               NSStringFromSelector(@selector(outlineView:child:ofItem:)),
-                                               NSStringFromSelector(@selector(outlineView:isItemExpandable:)),
-                                               NSStringFromSelector(@selector(outlineView:objectValueForTableColumn:byItem:))];
+        __requiredOutlineViewDataSourceMethods = @[NSStringFromSelector(@selector(outlineView:numberOfChildrenOfItem:)),
+                                                   NSStringFromSelector(@selector(outlineView:child:ofItem:)),
+                                                   NSStringFromSelector(@selector(outlineView:isItemExpandable:)),
+                                                   NSStringFromSelector(@selector(outlineView:objectValueForTableColumn:byItem:))];
 
-    // Add the custom mappings first before we add the 'regular' mappings.
-    [self addCustomMethodNameMappings];
+        // Add the custom mappings first before we add the 'regular' mappings.
 
-    // Now add the 'regular' mappings.
-    [self addEntriesToMethodForwardingMap:[self methodNameMappingsForProtocol:@protocol(NSOutlineViewDelegate)]];
-    [self addEntriesToMethodForwardingMap:[self methodNameMappingsForProtocol:@protocol(NSOutlineViewDataSource)]];
+        [self addCustomMethodNameMappings];
+
+        // Now add the 'regular' mappings.
+
+        [self addEntriesToMethodForwardingMap:[self methodNameMappingsForProtocol:@protocol(NSOutlineViewDelegate)]];
+        [self addEntriesToMethodForwardingMap:[self methodNameMappingsForProtocol:@protocol(NSOutlineViewDataSource)]];
+    }
 }
 
-- (id)initWithSourceList:(PXSourceList *)sourceList
+- (instancetype) initWithSourceList:(PXSourceList*) sourceList
 {
     _sourceList = sourceList;
-
     return self;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
-    //Unregister the delegate from receiving notifications
-	[[NSNotificationCenter defaultCenter] removeObserver:self.delegate name:nil object:self.sourceList];
+    // Unregister the delegate from receiving notifications
+
+    [[NSNotificationCenter defaultCenter] removeObserver:self.delegate name:nil object:self.sourceList];
 }
 
 #pragma mark - Accessors
 
-- (void)setDelegate:(id<PXSourceListDelegate>)delegate
+- (void) setDelegate:(id<PXSourceListDelegate>) delegate
 {
-    if (self.delegate)
+    if( self.delegate )
         [[NSNotificationCenter defaultCenter] removeObserver:self.delegate name:nil object:self.sourceList];
 
     _delegate = delegate;
 
-    //Register the new delegate to receive notifications
-	[self registerDelegateToReceiveNotification:PXSLSelectionIsChangingNotification
-								   withSelector:@selector(sourceListSelectionIsChanging:)];
-	[self registerDelegateToReceiveNotification:PXSLSelectionDidChangeNotification
-								   withSelector:@selector(sourceListSelectionDidChange:)];
-	[self registerDelegateToReceiveNotification:PXSLItemWillExpandNotification
-								   withSelector:@selector(sourceListItemWillExpand:)];
-	[self registerDelegateToReceiveNotification:PXSLItemDidExpandNotification
-								   withSelector:@selector(sourceListItemDidExpand:)];
-	[self registerDelegateToReceiveNotification:PXSLItemWillCollapseNotification
-								   withSelector:@selector(sourceListItemWillCollapse:)];
-	[self registerDelegateToReceiveNotification:PXSLItemDidCollapseNotification
-								   withSelector:@selector(sourceListItemDidCollapse:)];
-	[self registerDelegateToReceiveNotification:PXSLDeleteKeyPressedOnRowsNotification
-								   withSelector:@selector(sourceListDeleteKeyPressedOnRows:)];
+    // Register the new delegate to receive notifications
+
+    [self registerDelegateToReceiveNotification:PXSLSelectionIsChangingNotification withSelector:@selector(sourceListSelectionIsChanging:)];
+	[self registerDelegateToReceiveNotification:PXSLSelectionDidChangeNotification withSelector:@selector(sourceListSelectionDidChange:)];
+	[self registerDelegateToReceiveNotification:PXSLItemWillExpandNotification withSelector:@selector(sourceListItemWillExpand:)];
+	[self registerDelegateToReceiveNotification:PXSLItemDidExpandNotification withSelector:@selector(sourceListItemDidExpand:)];
+	[self registerDelegateToReceiveNotification:PXSLItemWillCollapseNotification withSelector:@selector(sourceListItemWillCollapse:)];
+	[self registerDelegateToReceiveNotification:PXSLItemDidCollapseNotification withSelector:@selector(sourceListItemDidCollapse:)];
+	[self registerDelegateToReceiveNotification:PXSLDeleteKeyPressedOnRowsNotification withSelector:@selector(sourceListDeleteKeyPressedOnRows:)];
 }
 
-- (void)setDataSource:(id<PXSourceListDataSource>)dataSource
+- (void) setDataSource:(id<PXSourceListDataSource>) dataSource
 {
     _dataSource = dataSource;
 }
 
 #pragma mark - NSObject Overrides
 
-- (BOOL)respondsToSelector:(SEL)aSelector
+- (BOOL) respondsToSelector:(SEL) aSelector
 {
-    NSString *methodName = NSStringFromSelector(aSelector);
+    NSString* methodName = NSStringFromSelector(aSelector);
 
     // Only let the source list override NSOutlineView delegate and data source methods.
-    if ([self.sourceList respondsToSelector:aSelector] && ([__outlineViewDataSourceMethods containsObject:methodName] || [__outlineViewDelegateMethods containsObject:methodName]))
+
+    if( [self.sourceList respondsToSelector:aSelector] && ([__outlineViewDataSourceMethods containsObject:methodName] || [__outlineViewDelegateMethods containsObject:methodName]) )
         return YES;
 
-    if ([__requiredOutlineViewDataSourceMethods containsObject:methodName])
+    if( [__requiredOutlineViewDataSourceMethods containsObject:methodName] )
         return YES;
 
-    if ([__fastPathForwardingDelegateMethods containsObject:methodName])
+    if( [__fastPathForwardingDelegateMethods containsObject:methodName] )
         return [self.delegate respondsToSelector:aSelector];
-    if ([__fastPathForwardingDataSourceMethods containsObject:methodName])
+    if( [__fastPathForwardingDataSourceMethods containsObject:methodName] )
         return [self.dataSource respondsToSelector:aSelector];
 
     id forwardingObject = [self forwardingObjectForSelector:aSelector];
     NSDictionary *forwardingInformation = [[self class] forwardingInformationForSelector:aSelector];
 
-    if(!forwardingObject || !forwardingInformation)
+    if( !forwardingObject || !forwardingInformation )
         return NO;
 
     return [forwardingObject respondsToSelector:NSSelectorFromString(forwardingInformation[forwardingMapForwardingMethodNameKey])];
 }
 
-- (BOOL)conformsToProtocol:(Protocol *)protocol
+- (BOOL) conformsToProtocol:(Protocol*) protocol
 {
-    return class_conformsToProtocol(object_getClass(self), protocol);
+    return class_conformsToProtocol( object_getClass( self ), protocol );
 }
 
 // Fast-path delegate and data source methods aren't handled here; they are taken care of in -forwardingTargetForSelector:.
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
+
+- (NSMethodSignature*) methodSignatureForSelector:(SEL) selector
 {
-    NSString *methodName = NSStringFromSelector(aSelector);
+    NSString* methodName = NSStringFromSelector( selector );
 
-    struct objc_method_description description = {NULL, NULL};
+    struct objc_method_description description = { NULL, NULL };
 
-    if ([__outlineViewDelegateMethods containsObject:methodName])
-        description = px_methodDescriptionForProtocolMethod(@protocol(NSOutlineViewDelegate), aSelector);
-    else if ([__outlineViewDataSourceMethods containsObject:methodName])
-        description = px_methodDescriptionForProtocolMethod(@protocol(NSOutlineViewDataSource), aSelector);
+    if( [__outlineViewDelegateMethods containsObject:methodName] )
+        description = px_methodDescriptionForProtocolMethod( @protocol(NSOutlineViewDelegate), selector );
+    else if( [__outlineViewDataSourceMethods containsObject:methodName] )
+        description = px_methodDescriptionForProtocolMethod( @protocol(NSOutlineViewDataSource), selector );
 
-    if (description.name == NULL && description.types == NULL)
+    if( description.name == NULL && description.types == NULL )
         return nil;
 
     return [NSMethodSignature signatureWithObjCTypes:description.types];
 }
 
-- (void)forwardInvocation:(NSInvocation *)anInvocation
+- (void) forwardInvocation:(NSInvocation*) anInvocation
 {
     SEL sourceSelector = anInvocation.selector;
 
     // Give the Source List a chance to handle the selector first (this is a bit of a hack for the time being
     // and should be changed).
-    if ([self.sourceList respondsToSelector:sourceSelector]) {
+
+    if( [self.sourceList respondsToSelector:sourceSelector] )
+    {
         [anInvocation invokeWithTarget:self.sourceList];
         return;
     }
 
     id forwardingObject = [self forwardingObjectForSelector:sourceSelector];
-    NSDictionary *forwardingInformation = [[self class] forwardingInformationForSelector:sourceSelector];
+    NSDictionary* forwardingInformation = [[self class] forwardingInformationForSelector:sourceSelector];
 
-    if(!forwardingObject || !forwardingInformation) {
+    if(!forwardingObject || !forwardingInformation)
+    {
         [super forwardInvocation:anInvocation];
         return;
     }
 
-    SEL forwardingSelector = NSSelectorFromString(forwardingInformation[forwardingMapForwardingMethodNameKey]);
+    SEL forwardingSelector = NSSelectorFromString( forwardingInformation[forwardingMapForwardingMethodNameKey] );
 
-    NSArray *forwardedArgumentIndexes = forwardingInformation[forwardingMapForwardedArgumentIndexesKey];
+    NSArray* forwardedArgumentIndexes = forwardingInformation[forwardingMapForwardedArgumentIndexesKey];
     anInvocation.selector = forwardingSelector;
 
-    NSMethodSignature *methodSignature = [forwardingObject methodSignatureForSelector:forwardingSelector];
+    NSMethodSignature* methodSignature = [forwardingObject methodSignatureForSelector:forwardingSelector];
 
-    /* Catch the case where we have advertised ourselves as responding to a selector required by NSOutlineView
-       for a valid dataSource but the corresponding PXSourceListDataSource method isn't implemented by the dataSource.
-     */
-    if ([__requiredOutlineViewDataSourceMethods containsObject:NSStringFromSelector(sourceSelector)]
-        && ![self.dataSource respondsToSelector:forwardingSelector]) {
+    // Catch the case where we have advertised ourselves as responding to a selector required by NSOutlineView
+    // for a valid dataSource but the corresponding PXSourceListDataSource method isn't implemented by the dataSource.
+
+    if( [__requiredOutlineViewDataSourceMethods containsObject:NSStringFromSelector(sourceSelector)]
+        && ![self.dataSource respondsToSelector:forwardingSelector] )
+    {
         return;
     }
 
-    /* Modify the arguments in the invocation if the source and target selector arguments are different.
+    // Modify the arguments in the invocation if the source and target selector arguments are different.
+    //
+    // The forwardedArgumentIndexes array contains the indexes of arguments in the original invocation that we want
+    // to use in our modified invocation. E.g. @[@0, @2] means take the first and third arguments and only use them
+    // when forwarding. We want to do this when the forwarded selector has a different number of arguments to the
+    // source selector (see +addCustomMethodNameMappings).
+    //
+    // Note that this implementation only works if the arguments in `forwardedArgumentIndexes` are monotonically
+    // increasing (which is good enough for now).
 
-       The forwardedArgumentIndexes array contains the indexes of arguments in the original invocation that we want
-       to use in our modified invocation. E.g. @[@0, @2] means take the first and third arguments and only use them
-       when forwarding. We want to do this when the forwarded selector has a different number of arguments to the
-       source selector (see +addCustomMethodNameMappings).
-     
-       Note that this implementation only works if the arguments in `forwardedArgumentIndexes` are monotonically
-       increasing (which is good enough for now).
-
-     */
-    if (forwardedArgumentIndexes) {
+    if( forwardedArgumentIndexes )
+    {
         // self and _cmd are arguments 0 and 1.
+
         NSUInteger invocationArgumentIndex = 2;
-        for (NSNumber *newArgumentIndex in forwardedArgumentIndexes) {
+        for( NSNumber* newArgumentIndex in forwardedArgumentIndexes )
+        {
             NSInteger forwardedArgumentIndex = newArgumentIndex.integerValue;
 
             // Handle the case where we want to use (for example) the third argument from the original invocation
             // as the second argument of our modified invocation.
-            if (invocationArgumentIndex != forwardedArgumentIndex) {
-                NSUInteger argumentSize = 0;
-                NSGetSizeAndAlignment([methodSignature getArgumentTypeAtIndex:invocationArgumentIndex], &argumentSize, NULL);
 
-                void *argument = malloc(argumentSize);
+            if( invocationArgumentIndex != (NSUInteger)forwardedArgumentIndex )
+            {
+                NSUInteger argumentSize = 0;
+                NSGetSizeAndAlignment( [methodSignature getArgumentTypeAtIndex:invocationArgumentIndex], &argumentSize, NULL );
+
+                void* argument = malloc( argumentSize );
                 [anInvocation getArgument:argument atIndex:forwardedArgumentIndex + 2]; // Take self and _cmd into account again.
-                [anInvocation setArgument:argument atIndex:invocationArgumentIndex];
-                free(argument);
+                [anInvocation setArgument:argument atIndex:(NSInteger)invocationArgumentIndex];
+                free( argument );
             }
 
             invocationArgumentIndex++;
@@ -216,14 +230,14 @@ static NSArray * __fastPathForwardingDataSourceMethods = nil;
     [anInvocation invokeWithTarget:forwardingObject];
 }
 
-- (id)forwardingTargetForSelector:(SEL)aSelector
+- (id) forwardingTargetForSelector:(SEL) aSelector
 {
-    NSString *methodName = NSStringFromSelector(aSelector);
+    NSString* methodName = NSStringFromSelector( aSelector );
 
-    if ([__fastPathForwardingDelegateMethods containsObject:methodName])
+    if( [__fastPathForwardingDelegateMethods containsObject:methodName] )
         return self.delegate;
 
-    if ([__fastPathForwardingDataSourceMethods containsObject:methodName])
+    if( [__fastPathForwardingDataSourceMethods containsObject:methodName] )
         return self.dataSource;
 
     return nil;
@@ -231,57 +245,60 @@ static NSArray * __fastPathForwardingDataSourceMethods = nil;
 
 #pragma mark - Method Forwarding
 
-+ (NSMutableDictionary *)methodForwardingMap
++ (NSMutableDictionary*) methodForwardingMap
 {
-    static NSMutableDictionary *_methodForwardingMap = nil;
-    if (!_methodForwardingMap)
-        _methodForwardingMap = [[NSMutableDictionary alloc] init];
+    static NSMutableDictionary* _methodForwardingMap = nil;
+    if( !_methodForwardingMap )
+        _methodForwardingMap = [NSMutableDictionary new];
 
     return _methodForwardingMap;
 }
 
-+ (void)addEntriesToMethodForwardingMap:(NSDictionary *)entries
++ (void) addEntriesToMethodForwardingMap:(NSDictionary*) entries
 {
-    NSArray *methodForwardingBlacklist = [self methodForwardingBlacklist];
-    NSMutableDictionary *methodForwardingMap = [self methodForwardingMap];
+    NSArray* methodForwardingBlacklist = [self methodForwardingBlacklist];
+    NSMutableDictionary* methodForwardingMap = [self methodForwardingMap];
 
-    for (NSString *key in entries) {
-        if (![methodForwardingBlacklist containsObject:key] && !methodForwardingMap[key])
+    for( NSString* key in entries )
+    {
+        if( ![methodForwardingBlacklist containsObject:key] && !methodForwardingMap[key] )
             methodForwardingMap[key] = entries[key];
     }
 }
 
-+ (NSDictionary *)methodNameMappingsForProtocol:(Protocol *)protocol
++ (NSDictionary*) methodNameMappingsForProtocol:(Protocol*) protocol
 {
-    NSMutableDictionary *methodNameMappings = [[NSMutableDictionary alloc] init];
-    NSArray *protocolMethods = px_allProtocolMethods(protocol);
-    NSString *protocolName = NSStringFromProtocol(protocol);
+    NSMutableDictionary* methodNameMappings = [NSMutableDictionary new];
+    NSArray* protocolMethods = px_allProtocolMethods( protocol );
+    NSString* protocolName = NSStringFromProtocol( protocol );
 
-    for (NSDictionary *methodInfo in protocolMethods) {
-        NSString *methodName = methodInfo[px_protocolMethodNameKey];
-        NSString *mappedMethodName = [self mappedMethodNameForMethodName:methodName];
-        if (!mappedMethodName) {
+    for( NSDictionary* methodInfo in protocolMethods )
+    {
+        NSString* methodName = methodInfo[px_protocolMethodNameKey];
+        NSString* mappedMethodName = [self mappedMethodNameForMethodName:methodName];
+        if( !mappedMethodName )
+        {
             NSLog(@"PXSourceList: couldn't map method %@ from %@", methodName, protocolName);
             continue;
         }
 
-        [methodNameMappings setObject:@{forwardingMapForwardingMethodNameKey: mappedMethodName}
-                               forKey:methodName];
+        methodNameMappings[methodName] = @{ forwardingMapForwardingMethodNameKey : mappedMethodName };
     }
 
     return methodNameMappings;
 }
 
-+ (NSString *)mappedMethodNameForMethodName:(NSString *)methodName
++ (NSString*) mappedMethodNameForMethodName:(NSString*) methodName
 {
-    NSString *outlineViewSearchString = @"outlineView";
+    NSString* outlineViewSearchString = @"outlineView";
     NSUInteger letterVOffset = [outlineViewSearchString rangeOfString:@"V"].location;
-    NSCharacterSet *uppercaseLetterCharacterSet = [NSCharacterSet uppercaseLetterCharacterSet];
+    NSCharacterSet* uppercaseLetterCharacterSet = [NSCharacterSet uppercaseLetterCharacterSet];
 
     NSRange outlineViewStringRange = [methodName rangeOfString:outlineViewSearchString options:NSCaseInsensitiveSearch];
 
     // If for some reason we can't map the method name, try to fail gracefully.
-    if (outlineViewStringRange.location == NSNotFound)
+
+    if( outlineViewStringRange.location == NSNotFound )
         return nil;
 
     BOOL isOCapitalized = [uppercaseLetterCharacterSet characterIsMember:[methodName characterAtIndex:outlineViewStringRange.location]];
@@ -291,24 +308,25 @@ static NSArray * __fastPathForwardingDataSourceMethods = nil;
 
 }
 
-- (id)forwardingObjectForSelector:(SEL)selector
+- (id) forwardingObjectForSelector:(SEL) selector
 {
-    if ([__outlineViewDataSourceMethods containsObject:NSStringFromSelector(selector)])
+    if( [__outlineViewDataSourceMethods containsObject:NSStringFromSelector(selector)] )
         return self.dataSource;
 
-    if ([__outlineViewDelegateMethods containsObject:NSStringFromSelector(selector)])
+    if( [__outlineViewDelegateMethods containsObject:NSStringFromSelector(selector)] )
         return self.delegate;
 
     return nil;
 }
 
-+ (NSDictionary *)forwardingInformationForSelector:(SEL)selector
++ (NSDictionary*) forwardingInformationForSelector:(SEL) selector
 {
     return [[self methodForwardingMap] objectForKey:NSStringFromSelector(selector)];
 }
 
 // These methods won't have mappings created for them.
-+ (NSArray *)methodForwardingBlacklist
+
++ (NSArray*) methodForwardingBlacklist
 {
     return @[NSStringFromSelector(@selector(outlineView:shouldSelectTableColumn:)),
              NSStringFromSelector(@selector(outlineView:shouldReorderColumn:toColumn:)),
@@ -322,13 +340,12 @@ static NSArray * __fastPathForwardingDataSourceMethods = nil;
              NSStringFromSelector(@selector(outlineView:isGroupItem:))];
 }
 
-/* Add custom mappings for method names which can't have "outlineView" simply replaced with "sourceList".
- 
-   For example, -outlineView:objectValueForTableColumn:byItem: should be forwarded to -sourceList:objectValueForItem:. We also only want to
-   forward the 1st and 3rd arguments when invoking this second selector.
+// Add custom mappings for method names which can't have "outlineView" simply replaced with "sourceList".
+//
+// For example, -outlineView:objectValueForTableColumn:byItem: should be forwarded to -sourceList:objectValueForItem:. We also only want to
+// forward the 1st and 3rd arguments when invoking this second selector.
 
- */
-+ (void)addCustomMethodNameMappings
++ (void) addCustomMethodNameMappings
 {
     [self addCustomMethodNameMappingFromSelector:@selector(outlineView:objectValueForTableColumn:byItem:)
                                       toSelector:@selector(sourceList:objectValueForItem:)
@@ -362,59 +379,62 @@ static NSArray * __fastPathForwardingDataSourceMethods = nil;
                         forwardedArgumentIndexes:@[@0, @2]];
 }
 
-+ (void)addCustomMethodNameMappingFromSelector:(SEL)fromSelector toSelector:(SEL)toSelector forwardedArgumentIndexes:(NSArray *)argumentIndexes
++ (void) addCustomMethodNameMappingFromSelector:(SEL) fromSelector toSelector:(SEL) toSelector forwardedArgumentIndexes:(NSArray*) argumentIndexes
 {
-    [[self methodForwardingMap] setObject:@{forwardingMapForwardingMethodNameKey: NSStringFromSelector(toSelector),
-                                            forwardingMapForwardedArgumentIndexesKey: argumentIndexes}
-                                   forKey:NSStringFromSelector(fromSelector)];
+    [[self methodForwardingMap] setObject:@{ forwardingMapForwardingMethodNameKey : NSStringFromSelector( toSelector ),
+                                             forwardingMapForwardedArgumentIndexesKey : argumentIndexes }
+                                   forKey:NSStringFromSelector( fromSelector )];
 }
 
-- (BOOL)getForwardingObject:(id*)outObject andForwardingSelector:(SEL*)outSelector forSelector:(SEL)selector
+- (BOOL) getForwardingObject:(id*) outObject andForwardingSelector:(SEL*) outSelector forSelector:(SEL) selector
 {
-    NSDictionary *methodForwardingMap = [[self class] methodForwardingMap];
-    NSString *originalMethodName = NSStringFromSelector(selector);
-    NSDictionary *forwardingInfo = methodForwardingMap[originalMethodName];
-    if (!forwardingInfo)
+    NSDictionary* methodForwardingMap = [[self class] methodForwardingMap];
+    NSString* originalMethodName = NSStringFromSelector( selector );
+    NSDictionary* forwardingInfo = methodForwardingMap[originalMethodName];
+    if( !forwardingInfo )
         return NO;
 
     id forwardingObject;
-    if ([__outlineViewDelegateMethods containsObject:originalMethodName])
+    if( [__outlineViewDelegateMethods containsObject:originalMethodName] )
         forwardingObject = self.delegate;
-    else if ([__outlineViewDataSourceMethods containsObject:originalMethodName])
+    else if( [__outlineViewDataSourceMethods containsObject:originalMethodName] )
         forwardingObject = self.dataSource;
 
-    if (!forwardingObject)
+    if( !forwardingObject )
         return NO;
 
-    if (outObject)
+    if( outObject )
         *outObject = forwardingObject;
 
-    if (outSelector)
+    if( outSelector )
         *outSelector = NSSelectorFromString(forwardingInfo[forwardingMapForwardingMethodNameKey]);
     
     return YES;
 }
 
-+ (NSArray *)fastPathForwardingDelegateMethods
++ (NSArray*) fastPathForwardingDelegateMethods
 {
-    NSMutableArray *methods = [px_methodNamesForProtocol(@protocol(PXSourceListDelegate)) mutableCopy];
+    NSMutableArray* methods = [px_methodNamesForProtocol(@protocol(PXSourceListDelegate)) mutableCopy];
 
     // Add the NSControl delegate methods manually (unfortunately these aren't part of a formal protocol).
+
     [methods addObject:px_methodNameForSelector(@selector(controlTextDidEndEditing:))];
     [methods addObject:px_methodNameForSelector(@selector(controlTextDidBeginEditing:))];
     [methods addObject:px_methodNameForSelector(@selector(controlTextDidChange:))];
 
-    return methods;
+    return [methods copy];
 }
 
 #pragma mark - Notifications
 
-- (void)registerDelegateToReceiveNotification:(NSString*)notification withSelector:(SEL)selector
+- (void) registerDelegateToReceiveNotification:(NSString*) notification withSelector:(SEL) selector
 {
-	NSNotificationCenter *defaultCenter = [NSNotificationCenter defaultCenter];
+	NSNotificationCenter* defaultCenter = [NSNotificationCenter defaultCenter];
 
-	//Set the delegate as a receiver of the notification if it implements the notification method
-	if([self.delegate respondsToSelector:selector]) {
+	// Set the delegate as a receiver of the notification if it implements the notification method
+
+    if ([self.delegate respondsToSelector:selector] )
+    {
 		[defaultCenter addObserver:self.delegate
 						  selector:selector
 							  name:notification
@@ -422,40 +442,41 @@ static NSArray * __fastPathForwardingDataSourceMethods = nil;
 	}
 }
 
-/* Notification wrappers */
-- (void)outlineViewSelectionIsChanging:(NSNotification *)notification
+// Notification wrappers
+
+- (void) outlineViewSelectionIsChanging:(NSNotification*) notification
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLSelectionIsChangingNotification object:self.sourceList];
 }
 
 
-- (void)outlineViewSelectionDidChange:(NSNotification *)notification
+- (void) outlineViewSelectionDidChange:(NSNotification*) notification
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLSelectionDidChangeNotification object:self.sourceList];
 }
 
-- (void)outlineViewItemWillExpand:(NSNotification *)notification
+- (void) outlineViewItemWillExpand:(NSNotification*) notification
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemWillExpandNotification
 														object:self.sourceList
 													  userInfo:[notification userInfo]];
 }
 
-- (void)outlineViewItemDidExpand:(NSNotification *)notification
+- (void) outlineViewItemDidExpand:(NSNotification*) notification
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemDidExpandNotification
 														object:self.sourceList
 													  userInfo:[notification userInfo]];
 }
 
-- (void)outlineViewItemWillCollapse:(NSNotification *)notification
+- (void) outlineViewItemWillCollapse:(NSNotification*) notification
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemWillCollapseNotification
 														object:self.sourceList
 													  userInfo:[notification userInfo]];
 }
 
-- (void)outlineViewItemDidCollapse:(NSNotification *)notification
+- (void) outlineViewItemDidCollapse:(NSNotification*) notification
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemDidCollapseNotification
 														object:self.sourceList

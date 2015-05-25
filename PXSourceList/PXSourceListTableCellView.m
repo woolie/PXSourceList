@@ -12,20 +12,20 @@
 
 @implementation PXSourceListTableCellView
 
-- (void)layout
+- (void) layout
 {
     [super layout];
 
-    if (!self.badgeView)
-        return;
+    if( self.badgeView )
+    {
+        [self.badgeView sizeToFit];
 
-    [self.badgeView sizeToFit];
-
-    NSRect bounds = self.bounds;
-    NSSize badgeSize = self.badgeView.frame.size;
-    self.badgeView.frame = NSMakeRect(NSMaxX(bounds) - badgeSize.width,
-                                      NSMidY(bounds) - round(badgeSize.height / 2.0f),
-                                      badgeSize.width, badgeSize.height);
+        NSRect bounds = self.bounds;
+        NSSize badgeSize = self.badgeView.frame.size;
+        self.badgeView.frame = NSMakeRect( NSMaxX( bounds ) - badgeSize.width,
+                                           NSMidY( bounds ) - round( badgeSize.height * 0.5 ),
+                                           badgeSize.width, badgeSize.height );
+    }
 }
 
 @end

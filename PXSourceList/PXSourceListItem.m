@@ -9,18 +9,19 @@
 
 #import "PXSourceListItem.h"
 
-@implementation PXSourceListItem {
+@implementation PXSourceListItem
+{
     NSMutableArray *_children;
 }
 
-+ (instancetype)itemWithTitle:(NSString *)title identifier:(NSString *)identifier
++ (instancetype) itemWithTitle:(NSString*) title identifier:(NSString*) identifier
 {
     return [self itemWithTitle:title identifier:identifier icon:nil];
 }
 
-+ (instancetype)itemWithTitle:(NSString *)title identifier:(NSString *)identifier icon:(NSImage *)icon
++ (instancetype) itemWithTitle:(NSString*) title identifier:(NSString*) identifier icon:(NSImage*) icon
 {
-    PXSourceListItem *item = [[self alloc] init];
+    PXSourceListItem* item = [self new];
 
     item.title = title;
     item.identifier = identifier;
@@ -29,7 +30,7 @@
     return item;
 }
 
-+ (instancetype)itemWithRepresentedObject:(id)object icon:(NSImage *)icon
++ (instancetype) itemWithRepresentedObject:(id) object icon:(NSImage*) icon
 {
     PXSourceListItem *item = [[self alloc] init];
 
@@ -39,61 +40,62 @@
     return item;
 }
 
-- (id)init
+- (instancetype)init
 {
-    if (!(self = [super init]))
-        return nil;
-
-    _children = [[NSMutableArray alloc] init];
+    self = [super init];
+    if( self )
+    {
+        _children = [NSMutableArray new];
+    }
 
     return self;
 }
 
 #pragma mark - Custom Accessors
 
-- (NSArray *)children
+- (NSArray*) children
 {
     return [_children copy];
 }
 
-- (void)setChildren:(NSArray *)children
+- (void) setChildren:(NSArray*) children
 {
     _children = [children mutableCopy];
 }
 
 #pragma mark - Child Convenience Methods
 
-- (BOOL)hasChildren
+- (BOOL) hasChildren
 {
     return _children.count > 0;
 }
 
-- (void)addChildItem:(PXSourceListItem *)childItem
+- (void) addChildItem:(PXSourceListItem*) childItem
 {
     [_children addObject:childItem];
 }
 
-- (void)insertChildItem:(PXSourceListItem *)childItem atIndex:(NSUInteger)index
+- (void) insertChildItem:(PXSourceListItem*) childItem atIndex:(NSUInteger) index
 {
     [_children insertObject:childItem atIndex:index];
 }
 
-- (void)removeChildItem:(PXSourceListItem *)childItem
+- (void) removeChildItem:(PXSourceListItem*) childItem
 {
     [_children removeObject:childItem];
 }
 
-- (void)removeChildItemAtIndex:(NSUInteger)index
+- (void) removeChildItemAtIndex:(NSUInteger) index
 {
     [_children removeObjectAtIndex:index];
 }
 
-- (void)removeChildItems:(NSArray *)items
+- (void) removeChildItems:(NSArray*) items
 {
     [_children removeObjectsInArray:items];
 }
 
-- (void)insertChildItems:(NSArray *)items atIndexes:(NSIndexSet *)indexes
+- (void) insertChildItems:(NSArray*) items atIndexes:(NSIndexSet*) indexes
 {
     [_children insertObjects:items atIndexes:indexes];
 }

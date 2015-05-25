@@ -7,7 +7,7 @@
 //  This software is licensed under the New BSD License. Full details can be found in the README.
 //
 
-#import <Cocoa/Cocoa.h>
+@import Cocoa;
 
 /* This is the cell which backs drawing done by PXSourceListBadgeView, and is used internally for
    drawing badges when PXSourceList is used in cell-based mode.
@@ -16,8 +16,8 @@
  */
 @interface PXSourceListBadgeCell : NSCell
 
-@property (strong, nonatomic) NSColor *textColor;
-@property (strong, nonatomic) NSColor *backgroundColor;
-@property (assign, nonatomic) NSUInteger badgeValue;
+@property (nonatomic, strong) NSColor* textColor;
+@property (nonatomic, strong) NSColor* backgroundColor;
+@property (nonatomic, assign) NSUInteger badgeValue;
 
 @end

@@ -10,58 +10,54 @@
 #import "AppDelegate.h"
 
 @interface AppDelegate ()
-
-@property (weak, nonatomic) IBOutlet PXSourceList *sourceList;
-@property (weak, nonatomic) IBOutlet NSTextField *selectedItemLabel;
-
-@property (strong, nonatomic) NSMutableArray *sourceListItems;
-
+@property (nonatomic, weak) IBOutlet PXSourceList* sourceList;
+@property (nonatomic, weak) IBOutlet NSTextField* selectedItemLabel;
+@property (nonatomic, strong) NSMutableArray* sourceListItems;
 @end
 
 @implementation AppDelegate
 
-#pragma mark -
-#pragma mark Init/Dealloc
+#pragma mark - Init/Dealloc
 
-- (void)awakeFromNib
+- (void) awakeFromNib
 {
-	[self.selectedItemLabel setStringValue:@"(none)"];
-	
-	self.sourceListItems = [[NSMutableArray alloc] init];
+	[self.selectedItemLabel.stringValue = @"(none)";
+
+	self.sourceListItems = [NSMutableArray new];
 	
 	//Set up the "Library" parent item and children
-	PXSourceListItem *libraryItem = [PXSourceListItem itemWithTitle:@"LIBRARY" identifier:@"library"];
-	PXSourceListItem *musicItem = [PXSourceListItem itemWithTitle:@"Music" identifier:@"music"];
-	[musicItem setIcon:[NSImage imageNamed:@"music.png"]];
+
+    PXSourceListItem* libraryItem = [PXSourceListItem itemWithTitle:@"LIBRARY" identifier:@"library"];
+	PXSourceListItem* musicItem = [PXSourceListItem itemWithTitle:@"Music" identifier:@"music"];
+	musicItem.icon = [NSImage imageNamed:@"music.png"];
 	PXSourceListItem *moviesItem = [PXSourceListItem itemWithTitle:@"Movies" identifier:@"movies"];
-	[moviesItem setIcon:[NSImage imageNamed:@"movies.png"]];
+	musicItem.icon = [NSImage imageNamed:@"movies.png"];
 	PXSourceListItem *podcastsItem = [PXSourceListItem itemWithTitle:@"Podcasts" identifier:@"podcasts"];
-	[podcastsItem setIcon:[NSImage imageNamed:@"podcasts.png"]];
-	[podcastsItem setBadgeValue:@10];
+	podcastsItem.icon = [NSImage imageNamed:@"podcasts.png"];
+	podcastsItem.badgeValue = @10;
 	PXSourceListItem *audiobooksItem = [PXSourceListItem itemWithTitle:@"Audiobooks" identifier:@"audiobooks"];
 	[audiobooksItem setIcon:[NSImage imageNamed:@"audiobooks.png"]];
 	[libraryItem setChildren:[NSArray arrayWithObjects:musicItem, moviesItem, podcastsItem,
 							  audiobooksItem, nil]];
 	
 	//Set up the "Playlists" parent item and children
-	PXSourceListItem *playlistsItem = [PXSourceListItem itemWithTitle:@"PLAYLISTS" identifier:@"playlists"];
-	PXSourceListItem *playlist1Item = [PXSourceListItem itemWithTitle:@"Playlist1" identifier:@"playlist1"];
+	PXSourceListItem* playlistsItem = [PXSourceListItem itemWithTitle:@"PLAYLISTS" identifier:@"playlists"];
+	PXSourceListItem* playlist1Item = [PXSourceListItem itemWithTitle:@"Playlist1" identifier:@"playlist1"];
 	
 	//Create a second-level group to demonstrate
-	PXSourceListItem *playlist2Item = [PXSourceListItem itemWithTitle:@"Playlist2" identifier:@"playlist2"];
-	PXSourceListItem *playlist3Item = [PXSourceListItem itemWithTitle:@"Playlist3" identifier:@"playlist3"];
-	[playlist1Item setIcon:[NSImage imageNamed:@"playlist.png"]];
-	[playlist2Item setIcon:[NSImage imageNamed:@"playlist.png"]];
-	[playlist3Item setIcon:[NSImage imageNamed:@"playlist.png"]];
+	PXSourceListItem* playlist2Item = [PXSourceListItem itemWithTitle:@"Playlist2" identifier:@"playlist2"];
+	PXSourceListItem* playlist3Item = [PXSourceListItem itemWithTitle:@"Playlist3" identifier:@"playlist3"];
+	playlist1Item.icon = [NSImage imageNamed:@"playlist.png"];
+	playlist2Item.icon = [NSImage imageNamed:@"playlist.png"];
+	playlist3Item.icon = [NSImage imageNamed:@"playlist.png"];
 	
-	PXSourceListItem *playlistGroup = [PXSourceListItem itemWithTitle:@"Playlist Group" identifier:@"playlistgroup"];
-	PXSourceListItem *playlistGroupItem = [PXSourceListItem itemWithTitle:@"Child Playlist" identifier:@"childplaylist"];
-	[playlistGroup setIcon:[NSImage imageNamed:@"playlistFolder.png"]];
-	[playlistGroupItem setIcon:[NSImage imageNamed:@"playlist.png"]];
-	[playlistGroup setChildren:[NSArray arrayWithObject:playlistGroupItem]];
+	PXSourceListItem* playlistGroup = [PXSourceListItem itemWithTitle:@"Playlist Group" identifier:@"playlistgroup"];
+	PXSourceListItem* playlistGroupItem = [PXSourceListItem itemWithTitle:@"Child Playlist" identifier:@"childplaylist"];
+	playlistGroup.icon = [NSImage imageNamed:@"playlistFolder.png"];
+	playlistGroupItem.icon =[NSImage imageNamed:@"playlist.png"];
+	playlistGroup.children = @[playlistGroupItem];
 	
-	[playlistsItem setChildren:[NSArray arrayWithObjects:playlist1Item, playlistGroup,playlist2Item,
-								playlist3Item, nil]];
+	playlistsItem.children = @[playlist1Item, playlistGroup, playlist2Item, playlist3Item];
 	
 	[self.sourceListItems addObject:libraryItem];
 	[self.sourceListItems addObject:playlistsItem];
@@ -69,17 +65,18 @@
 	[self.sourceList reloadData];
 }
 
-
-#pragma mark -
-#pragma mark Source List Data Source Methods
+#pragma mark - Source List Data Source Methods
 
 - (NSUInteger)sourceList:(PXSourceList*)sourceList numberOfChildrenOfItem:(id)item
 {
-	//Works the same way as the NSOutlineView data source: `nil` means a parent item
-	if(item==nil) {
+	// Works the same way as the NSOutlineView data source: `nil` means a parent item
+
+    if(item==nil)
+    {
 		return [self.sourceListItems count];
 	}
-	else {
+	else
+    {
 		return [[item children] count];
 	}
 }
@@ -88,10 +85,13 @@
 - (id)sourceList:(PXSourceList*)aSourceList child:(NSUInteger)index ofItem:(id)item
 {
 	//Works the same way as the NSOutlineView data source: `nil` means a parent item
-	if(item==nil) {
+
+    if(item==nil)
+    {
 		return [self.sourceListItems objectAtIndex:index];
 	}
-	else {
+	else
+    {
 		return [[item children] objectAtIndex:index];
 	}
 }
@@ -142,7 +142,7 @@
 {
 	if ([theEvent type] == NSRightMouseDown || ([theEvent type] == NSLeftMouseDown && ([theEvent modifierFlags] & NSControlKeyMask) == NSControlKeyMask)) {
 		NSMenu * m = [[NSMenu alloc] init];
-		if (item != nil) {
+		if (item != nil){
 			[m addItemWithTitle:[item title] action:nil keyEquivalent:@""];
 		} else {
 			[m addItemWithTitle:@"clicked outside" action:nil keyEquivalent:@""];
@@ -185,9 +185,11 @@
 - (void)sourceListDeleteKeyPressedOnRows:(NSNotification *)notification
 {
 	NSIndexSet *rows = [[notification userInfo] objectForKey:@"rows"];
-	
+
+#if DEBUG
 	NSLog(@"Delete key pressed on rows %@", rows);
-	
+#endif
+
 	//Do something here
 }
 

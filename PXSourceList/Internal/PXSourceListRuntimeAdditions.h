@@ -10,12 +10,12 @@
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
 
-extern NSString * const px_protocolMethodNameKey;
-extern NSString * const px_protocolMethodArgumentTypesKey;
-extern NSString * const px_protocolIsRequiredMethodKey;
+extern NSString* const px_protocolMethodNameKey;
+extern NSString* const px_protocolMethodArgumentTypesKey;
+extern NSString* const px_protocolIsRequiredMethodKey;
 
-NSArray *px_allProtocolMethods(Protocol *protocol);
-NSArray *px_methodNamesForProtocol(Protocol *protocol);
-id px_methodNameForSelector(SEL selector);
+NSArray* px_allProtocolMethods( Protocol* protocol );
+NSArray* px_methodNamesForProtocol( Protocol* protocol );
+id px_methodNameForSelector( SEL selector );
 
-struct objc_method_description px_methodDescriptionForProtocolMethod(Protocol *protocol, SEL selector);
+struct objc_method_description px_methodDescriptionForProtocolMethod( Protocol* protocol, SEL selector );

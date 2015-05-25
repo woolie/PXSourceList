@@ -7,7 +7,7 @@
 //  This software is licensed under the New BSD License. Full details can be found in the README.
 //
 
-#import <Cocoa/Cocoa.h>
+@import Cocoa;
 
 #import "PXSourceList.h"
 

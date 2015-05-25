@@ -7,12 +7,12 @@
 //  This software is licensed under the New BSD License. Full details can be found in the README.
 //
 
-#import <Foundation/Foundation.h>
+@import Foundation;
 
-extern NSString * const PXSLSelectionIsChangingNotification;
-extern NSString * const PXSLSelectionDidChangeNotification;
-extern NSString * const PXSLItemWillExpandNotification;
-extern NSString * const PXSLItemDidExpandNotification;
-extern NSString * const PXSLItemWillCollapseNotification;
-extern NSString * const PXSLItemDidCollapseNotification;
-extern NSString * const PXSLDeleteKeyPressedOnRowsNotification;
+extern NSString* const PXSLSelectionIsChangingNotification;
+extern NSString* const PXSLSelectionDidChangeNotification;
+extern NSString* const PXSLItemWillExpandNotification;
+extern NSString* const PXSLItemDidExpandNotification;
+extern NSString* const PXSLItemWillCollapseNotification;
+extern NSString* const PXSLItemDidCollapseNotification;
+extern NSString* const PXSLDeleteKeyPressedOnRowsNotification;

@@ -6,8 +6,10 @@
 //  Copyright 2009-14 Alex Rozanski http://alexrozanski.com and other contributors.
 //  This software is licensed under the New BSD License. Full details can be found in the README.
 //
+//  Woolsoft derived version by Steven Woolgar on 2015-05-24
+//
 
-#import <Cocoa/Cocoa.h>
+@import Cocoa;
 
 #import "PXSourceListDelegate.h"
 #import "PXSourceListDataSource.h"
@@ -92,7 +94,7 @@
  
  @since Requires PXSourceList 0.8 or above and the OS X v10.5 SDK or above.
  */
-- (void)setDataSource:(id<PXSourceListDataSource>)dataSource;
+- (void) setDataSource:(id<PXSourceListDataSource>) dataSource;
 
 /** Used to set the Source List's delegate.
  
@@ -104,7 +106,7 @@
  
  @since Requires PXSourceList 0.8 or above and the OS X v10.5 SDK or above.
  */
-- (void)setDelegate:(id<PXSourceListDelegate>)delegate;
+- (void) setDelegate:(id<PXSourceListDelegate>) delegate;
 
 ///---------------------------------------------------------------------------------------
 /// @name Setting Display Attributes
@@ -138,7 +140,7 @@
  
  @since Requires PXSourceList 0.8 or above and the OS X v10.5 SDK or above.
  */
-- (BOOL)isGroupItem:(id)item;
+- (BOOL) isGroupItem:(id) item;
 
 /** Returns a Boolean value that indicates whether a given group item in the Source List is always expanded.
  
@@ -155,7 +157,7 @@
  
  @since Requires PXSourceList 0.8 or above and the OS X v10.5 SDK or above.
  */
-- (BOOL)isGroupAlwaysExpanded:(id)group;
+- (BOOL) isGroupAlwaysExpanded:(id) group;
 
 ///---------------------------------------------------------------------------------------
 /// @name Working with Badges
@@ -175,7 +177,7 @@
  
  @since Requires PXSourceList 0.8 or above and the OS X v10.5 SDK or above.
  */
-- (BOOL)itemHasBadge:(id)item;
+- (BOOL) itemHasBadge:(id) item;
 
 /** Returns the integer value of the badge for a given item.
 
@@ -191,7 +193,7 @@
  
  @since Requires PXSourceList 0.8 or above and the OS X v10.5 SDK or above.
  */
-- (NSInteger)badgeValueForItem:(id)item;
+- (NSInteger) badgeValueForItem:(id) item;
 
 /* === Unavailable methods ===
  
@@ -199,8 +201,8 @@
    source. I am *always* looking for a way to remove this limitation. Please file an issue at https://github.com/Perspx/PXSourceList if you
    have any ideas!
  */
-- (id <NSOutlineViewDelegate>)delegate __attribute__((unavailable("-delegate shouldn't be called on PXSourceList. See the documentation for more information.")));
-- (id <NSOutlineViewDataSource>)dataSource __attribute__((unavailable("-dataSource shouldn't be called on PXSourceList. See the documentation for more information.")));
+- (id <NSOutlineViewDelegate>) delegate     __attribute__((unavailable("-delegate shouldn't be called on PXSourceList. See the documentation for more information.")));
+- (id <NSOutlineViewDataSource>) dataSource __attribute__((unavailable("-dataSource shouldn't be called on PXSourceList. See the documentation for more information.")));
 
 @end
 

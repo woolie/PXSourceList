@@ -12,39 +12,39 @@
 
 @implementation PXSourceListBadgeView
 
-+ (Class)cellClass
++ (Class) cellClass
 {
     return [PXSourceListBadgeCell class];
 }
 
 #pragma mark - Custom Accessors
 
-- (void)setBadgeValue:(NSUInteger)badgeValue
-{
-    [self.cell setBadgeValue:badgeValue];
-}
-
-- (NSUInteger)badgeValue
+- (NSUInteger) badgeValue
 {
     return [self.cell badgeValue];
 }
 
-- (NSColor *)textColor
+- (void) setBadgeValue:(NSUInteger) badgeValue
+{
+    [self.cell setBadgeValue:badgeValue];
+}
+
+- (NSColor*) textColor
 {
     return [self.cell textColor];
 }
 
-- (void)setTextColor:(NSColor *)textColor
+- (void) setTextColor:(NSColor*) textColor
 {
     [self.cell setTextColor:textColor];
 }
 
-- (NSColor *)backgroundColor
+- (NSColor*) backgroundColor
 {
     return [self.cell backgroundColor];
 }
 
-- (void)setBackgroundColor:(NSColor *)backgroundColor
+- (void) setBackgroundColor:(NSColor*) backgroundColor
 {
     [self.cell setBackgroundColor:backgroundColor];
 }

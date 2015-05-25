@@ -51,11 +51,11 @@
  */
 @interface PXSourceListItem : NSObject
 
-@property (strong, nonatomic) NSString *title;
-@property (strong, nonatomic) NSImage *icon;
-@property (weak, nonatomic) id representedObject;
-@property (strong, nonatomic) NSString *identifier;
-@property (strong, nonatomic) NSNumber *badgeValue;
+@property (nonatomic, copy) NSString* title;
+@property (nonatomic, strong) NSImage* icon;
+@property (nonatomic, weak) id representedObject;
+@property (nonatomic, copy) NSString* identifier;
+@property (nonatomic, strong) NSNumber* badgeValue;
 
 ///---------------------------------------------------------------------------------------
 /// @name Convenience initialisers
@@ -72,7 +72,7 @@
  
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-+ (instancetype)itemWithTitle:(NSString *)title identifier:(NSString *)identifier;
++ (instancetype) itemWithTitle:(NSString*) title identifier:(NSString*) identifier;
 
 /** Creates and returns an item with the given parameters.
 
@@ -87,7 +87,7 @@
  
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-+ (instancetype)itemWithTitle:(NSString *)title identifier:(NSString *)identifier icon:(NSImage *)icon;
++ (instancetype) itemWithTitle:(NSString*) title identifier:(NSString*) identifier icon:(NSImage*) icon;
 
 /** Creates and returns an item with the given parameters.
 
@@ -101,7 +101,7 @@
  
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-+ (instancetype)itemWithRepresentedObject:(id)object icon:(NSImage *)icon;
++ (instancetype) itemWithRepresentedObject:(id) object icon:(NSImage*) icon;
 
 ///---------------------------------------------------------------------------------------
 /// @name Working with child items
@@ -116,7 +116,7 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-@property (strong, nonatomic) NSArray *children;
+@property (nonatomic, copy) NSArray* children;
 
 /**
  @brief Returns whether the receiver has any child items.
@@ -127,7 +127,7 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-- (BOOL)hasChildren;
+- (BOOL) hasChildren;
 
 /**
  @brief Adds an item to the receiver's array of child items.
@@ -142,7 +142,7 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-- (void)addChildItem:(PXSourceListItem *)childItem;
+- (void) addChildItem:(PXSourceListItem*) childItem;
 
 /**
  @brief Inserts an item to the receiver's array of child items at a given index.
@@ -159,7 +159,7 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-- (void)insertChildItem:(PXSourceListItem *)childItem atIndex:(NSUInteger)index;
+- (void) insertChildItem:(PXSourceListItem*) childItem atIndex:(NSUInteger) index;
 
 /**
  @brief Removes an item from the receiver's array of child items.
@@ -175,7 +175,7 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-- (void)removeChildItem:(PXSourceListItem *)childItem;
+- (void) removeChildItem:(PXSourceListItem*) childItem;
 
 /**
  @brief Removes the item at the given index from the receiver's array of child items.
@@ -191,7 +191,7 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-- (void)removeChildItemAtIndex:(NSUInteger)index;
+- (void) removeChildItemAtIndex:(NSUInteger) index;
 
 /**
  @brief Removes the items in the given array from the receiver's array of child items.
@@ -207,7 +207,7 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-- (void)removeChildItems:(NSArray *)items;
+- (void) removeChildItems:(NSArray*) items;
 
 /**
  @brief Inserts the given items into the receiver's array of child items at the given indexes.
@@ -223,6 +223,6 @@
 
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-- (void)insertChildItems:(NSArray *)items atIndexes:(NSIndexSet *)indexes;
+- (void) insertChildItems:(NSArray*) items atIndexes:(NSIndexSet*) indexes;
 
 @end

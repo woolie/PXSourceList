@@ -259,7 +259,7 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
     return NSDragOperationMove;
 }
 
-- (BOOL)sourceList:(PXSourceList*)aSourceList acceptDrop:(id < NSDraggingInfo >)info item:(id)item childIndex:(NSInteger)index
+- (BOOL)sourceList:(PXSourceList*) aSourceList acceptDrop:(id<NSDraggingInfo>) info item:(id) item childIndex:(NSInteger) index
 {
     NSPasteboard *draggingPasteboard = info.draggingPasteboard;
     NSMutableIndexSet *draggedChildIndexes = [NSKeyedUnarchiver unarchiveObjectWithData:[draggingPasteboard dataForType:draggingType]];
@@ -271,8 +271,8 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
     }];
 
     // An index of -1 means it's been dropped on the group header itself, so insert at the end of the group.
-    if (index == -1)
-        index = parentItem.children.count;
+    if( index == -1 )
+        index = (NSInteger)parentItem.children.count;
 
     // Perform the Source List and model updates.
     [aSourceList beginUpdates];
@@ -283,7 +283,7 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 
     // We have to calculate the new child index which we have to perform the drop at, since we've just removed items from the parent item which
     // may have come before the drop index.
-    NSUInteger adjustedDropIndex = index - [draggedChildIndexes countOfIndexesInRange:NSMakeRange(0, index)];
+    NSUInteger adjustedDropIndex = (NSUInteger)(index) - [draggedChildIndexes countOfIndexesInRange:NSMakeRange(0, (NSUInteger)index)];
 
     // The insertion indexes are now simply from the adjusted drop index.
     NSIndexSet *insertionIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(adjustedDropIndex, draggedChildIndexes.count)];

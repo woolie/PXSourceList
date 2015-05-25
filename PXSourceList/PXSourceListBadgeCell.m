@@ -11,40 +11,45 @@
 
 #import "PXSourceList.h"
 
-//Drawing constants
-static inline NSColor *badgeBackgroundColor() { return [NSColor colorWithCalibratedRed:(152/255.0) green:(168/255.0) blue:(202/255.0) alpha:1]; }
-static inline NSColor *badgeHiddenBackgroundColor() { return [NSColor colorWithDeviceWhite:(180/255.0) alpha:1]; }
-static inline NSColor *badgeSelectedTextColor() { return [NSColor keyboardFocusIndicatorColor]; }
-static inline NSColor *badgeSelectedUnfocusedTextColor() { return [NSColor colorWithCalibratedRed:(153/255.0) green:(169/255.0) blue:(203/255.0) alpha:1]; }
-static inline NSColor *badgeSelectedHiddenTextColor() { return [NSColor colorWithCalibratedWhite:(170/255.0) alpha:1]; }
-static inline NSFont *badgeFont() { return [NSFont boldSystemFontOfSize:11]; }
+// Drawing constants
+
+static inline NSColor* badgeBackgroundColor() { return [NSColor colorWithCalibratedRed:(152.0 / 255.0) green:(168.0 / 255.0) blue:(202.0 / 255.0) alpha:1.0]; }
+static inline NSColor* badgeHiddenBackgroundColor() { return [NSColor colorWithDeviceWhite:(180.0 / 255.0) alpha:1.0]; }
+static inline NSColor* badgeSelectedTextColor() { return [NSColor keyboardFocusIndicatorColor]; }
+static inline NSColor* badgeSelectedUnfocusedTextColor() { return [NSColor colorWithCalibratedRed:(153.0 / 255.0) green:(169.0 / 255.0) blue:(203.0 / 255.0) alpha:1.0]; }
+static inline NSColor* badgeSelectedHiddenTextColor() { return [NSColor colorWithCalibratedWhite:(170.0 / 255.0) alpha:1.0]; }
+static inline NSFont*  badgeFont() { return [NSFont boldSystemFontOfSize:11.0]; }
 
 // Sizing constants.
-static const CGFloat badgeLeftAndRightPadding = 5.0;
+
+static const CGFloat kBadgeLeftAndRightPadding = 5.0;
 
 @implementation PXSourceListBadgeCell
 
-- (id)init
+- (instancetype) init
 {
-    if (!(self = [super initTextCell:@""]))
-        return nil;
+    self = [super initTextCell: @""];
+    if( self )
+    {
+        ;
+    }
 
     return self;
 }
 
-- (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
+- (void) drawWithFrame:(NSRect) cellFrame inView:(NSView*) controlView
 {
-    CGFloat borderRadius = NSHeight(cellFrame)/2.0f;
-	NSBezierPath *badgePath = [NSBezierPath bezierPathWithRoundedRect:cellFrame xRadius:borderRadius yRadius:borderRadius];
+    CGFloat borderRadius = NSHeight( cellFrame ) * 0.5;
+	NSBezierPath* badgePath = [NSBezierPath bezierPathWithRoundedRect:cellFrame xRadius:borderRadius yRadius:borderRadius];
 
 	// Get the window and control state to determine the badge colours used.
-	BOOL isMainWindowVisible = [[NSApp mainWindow] isVisible];
-	NSDictionary *attributes;
-	NSColor *backgroundColor;
 
-	if(self.isHighlighted || self.backgroundStyle == NSBackgroundStyleDark) {
-		backgroundColor = [NSColor whiteColor];
+    BOOL isMainWindowVisible = [NSApp mainWindow].isVisible;
+	NSDictionary* attributes = nil;
+	NSColor* backgroundColor = [NSColor whiteColor];
 
+	if( self.isHighlighted || self.backgroundStyle == NSBackgroundStyleDark )
+    {
         NSResponder *firstResponder = controlView.window.firstResponder;
         BOOL isFocused = NO;
 
@@ -53,30 +58,34 @@ static const CGFloat badgeLeftAndRightPadding = 5.0;
         // if the source list is focused.
         // This covers both the cell-based and view-based cases as well as if a child view of the NSTableCellView (such as
         // a text field) is focused.
-        if ([firstResponder isKindOfClass:[NSView class]]) {
+
+        if ([firstResponder isKindOfClass:[NSView class]])
+        {
             NSView *view = [(NSView*)firstResponder ancestorSharedWithView:controlView];
-            do {
-                if ([view isKindOfClass:[PXSourceList class]]) {
+            do
+            {
+                if( [view isKindOfClass:[PXSourceList class]] )
+                {
                     isFocused = YES;
                     break;
                 }
-            } while ((view = [view superview]));
+            } while( (view = [view superview]) );
         }
 
-        NSColor *textColor;
+        NSColor* textColor = badgeSelectedHiddenTextColor();
 
-		if (isMainWindowVisible && isFocused)
+		if( isMainWindowVisible && isFocused )
 			textColor = badgeSelectedTextColor();
-		else if (isMainWindowVisible && !isFocused)
+		else if( isMainWindowVisible && !isFocused )
 			textColor = badgeSelectedUnfocusedTextColor();
-		else
-			textColor = badgeSelectedHiddenTextColor();
 
-		attributes = @{NSForegroundColorAttributeName: textColor};
-	} else {
+        attributes = @{ NSForegroundColorAttributeName: textColor };
+    }
+    else
+    {
 		NSColor *textColor = textColor = self.textColor ? self.textColor : [NSColor whiteColor];;
 
-		if(isMainWindowVisible)
+		if( isMainWindowVisible )
             backgroundColor = self.backgroundColor ? self.backgroundColor : badgeBackgroundColor();
 		else
 			backgroundColor = badgeHiddenBackgroundColor();
@@ -87,33 +96,33 @@ static const CGFloat badgeLeftAndRightPadding = 5.0;
 	[backgroundColor set];
 	[badgePath fill];
 
-	//Draw the badge text
-    NSMutableAttributedString *badgeString = [self.badgeString mutableCopy];
-    [badgeString addAttributes:attributes range:NSMakeRange(0, badgeString.length)];
+	// Draw the badge text
+
+    NSMutableAttributedString* badgeString = [self.badgeString mutableCopy];
+    [badgeString addAttributes:attributes range:NSMakeRange( 0, badgeString.length )];
 
 	NSSize stringSize = badgeString.size;
-	NSPoint badgeTextPoint = NSMakePoint(NSMidX(cellFrame) - (stringSize.width/2.0),
-										 NSMidY(cellFrame) - (stringSize.height/2.0));
+	NSPoint badgeTextPoint = NSMakePoint( NSMidX( cellFrame ) - (stringSize.width * 0.5), NSMidY( cellFrame ) - (stringSize.height * 0.5) );
 	[badgeString drawAtPoint:badgeTextPoint];
 }
 
-- (NSSize)cellSize
+- (NSSize) cellSize
 {
     NSSize size = self.badgeString.size;
-    size.width += 2 * badgeLeftAndRightPadding;
+    size.width += 2 * kBadgeLeftAndRightPadding;
 
     return size;
 }
 
-- (NSAttributedString *)badgeString
+- (NSAttributedString*) badgeString
 {
 	return [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%ld", self.badgeValue]
-                                           attributes:@{NSFontAttributeName: badgeFont()}];
+                                           attributes:@{ NSFontAttributeName : badgeFont() }];
 }
 
-- (id)accessibilityAttributeValue:(NSString *)attribute
+- (id) accessibilityAttributeValue:(NSString*) attribute
 {
-    if ([attribute isEqualToString:NSAccessibilityValueAttribute])
+    if( [attribute isEqualToString:NSAccessibilityValueAttribute] )
         return @(_badgeValue).description;
     else
         return [super accessibilityAttributeValue:attribute];

@@ -7,7 +7,7 @@
 //  This software is licensed under the New BSD License. Full details can be found in the README.
 //
 
-#import <Cocoa/Cocoa.h>
+@import Cocoa;
 
 @class PXSourceListBadgeView;
 
@@ -38,6 +38,6 @@
  
  @since Requires PXSourceList 2.0.0 and above and the Mac OS X 10.7 SDK or above.
  */
-@property (weak, nonatomic) IBOutlet PXSourceListBadgeView *badgeView;
+@property (nonatomic, weak) IBOutlet PXSourceListBadgeView* badgeView;
 
 @end

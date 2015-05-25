@@ -6,7 +6,7 @@
 //  Copyright 2009 Alex Rozanski http://perspx.com
 //
 
-#import <Cocoa/Cocoa.h>
+@import Cocoa;
 
 int main(int argc, char *argv[])
 {
