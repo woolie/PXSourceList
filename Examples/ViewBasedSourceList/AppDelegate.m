@@ -23,9 +23,10 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Used to support drag and drop in the source list.
+
     [self.sourceList registerForDraggedTypes:@[draggingType]];
 
-    self.sourceListItems = [[NSMutableArray alloc] init];
+    self.sourceListItems = [NSMutableArray new];
     [self setUpDataModel];
 
     [self.sourceList reloadData];
@@ -33,55 +34,59 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 
 #pragma mark - Data Model
 
-/* We could set an identifier on the PXSourceListItem instances, but it makes more sense to put our
-   identifying information on the underlying model object in this case.
+// We could set an identifier on the PXSourceListItem instances, but it makes more sense to put our
+// identifying information on the underlying model object in this case.
+//
+// We also add some dummy Photo objects to each collection to emulate how a real model class would work.
 
-   We also add some dummy Photo objects to each collection to emulate how a real model class would work.
- */
-- (void)setUpDataModel
+- (void) setUpDataModel
 {
-    PhotoCollection *photosCollection = [PhotoCollection collectionWithTitle:@"Photos" identifier:@"photos" type:PhotoCollectionTypeLibrary];
+    PhotoCollection* photosCollection = [PhotoCollection collectionWithTitle:@"Photos" identifier:@"photos" type:PhotoCollectionTypeLibrary];
     [self addNumberOfPhotoObjects:264 toCollection:photosCollection];
 
-    PhotoCollection *eventsCollection = [PhotoCollection collectionWithTitle:@"Events" identifier:@"events" type:PhotoCollectionTypeLibrary];
+    PhotoCollection* eventsCollection = [PhotoCollection collectionWithTitle:@"Events" identifier:@"events" type:PhotoCollectionTypeLibrary];
     [self addNumberOfPhotoObjects:689 toCollection:eventsCollection];
 
-    PhotoCollection *peopleCollection = [PhotoCollection collectionWithTitle:@"People" identifier:@"people" type:PhotoCollectionTypeLibrary];
+    PhotoCollection* peopleCollection = [PhotoCollection collectionWithTitle:@"People" identifier:@"people" type:PhotoCollectionTypeLibrary];
     [self addNumberOfPhotoObjects:135 toCollection:peopleCollection];
 
-    PhotoCollection *placesCollection = [PhotoCollection collectionWithTitle:@"Places" identifier:@"places" type:PhotoCollectionTypeLibrary];
+    PhotoCollection* placesCollection = [PhotoCollection collectionWithTitle:@"Places" identifier:@"places" type:PhotoCollectionTypeLibrary];
     [self addNumberOfPhotoObjects:28 toCollection:placesCollection];
 
-    PhotoCollection *snapsCollection = [PhotoCollection collectionWithTitle:@"Holiday Snaps" identifier:nil type:PhotoCollectionTypeUserCreated];
+    PhotoCollection* snapsCollection = [PhotoCollection collectionWithTitle:@"Holiday Snaps" identifier:nil type:PhotoCollectionTypeUserCreated];
     [self addNumberOfPhotoObjects:40 toCollection:snapsCollection];
 
-    PhotoCollection *graduationCollection = [PhotoCollection collectionWithTitle:@"Graduation" identifier: nil type:PhotoCollectionTypeUserCreated];
+    PhotoCollection* graduationCollection = [PhotoCollection collectionWithTitle:@"Graduation" identifier: nil type:PhotoCollectionTypeUserCreated];
     [self addNumberOfPhotoObjects:1050 toCollection:graduationCollection];
 
     // Store all of the model objects in an array because each source list item only holds a weak reference to them.
+
     self.modelObjects = [@[photosCollection, eventsCollection, peopleCollection, placesCollection, snapsCollection, graduationCollection] mutableCopy];
 
     // Icon images we're going to use in the Source List.
-    NSImage *photosImage = [NSImage imageNamed:@"photos"];
-    [photosImage setTemplate:YES];
-    NSImage *eventsImage = [NSImage imageNamed:@"events"];
-    [eventsImage setTemplate:YES];
-    NSImage *peopleImage = [NSImage imageNamed:@"people"];
-    [peopleImage setTemplate:YES];
-    NSImage *placesImage = [NSImage imageNamed:@"places"];
-    [placesImage setTemplate:YES];
-    NSImage *albumImage = [NSImage imageNamed:@"album"];
-    [albumImage setTemplate:YES];
+
+    NSImage* photosImage = [NSImage imageNamed:@"photos"];
+    photosImage.template = YES;
+    NSImage* eventsImage = [NSImage imageNamed:@"events"];
+    eventsImage.template = YES;
+    NSImage* peopleImage = [NSImage imageNamed:@"people"];
+    peopleImage.template = YES;
+    NSImage* placesImage = [NSImage imageNamed:@"places"];
+    placesImage.template = YES;
+    NSImage* albumImage = [NSImage imageNamed:@"album"];
+    albumImage.template = YES;
 
     // Set up our Source List data model used in the Source List data source methods.
-    PXSourceListItem *libraryItem = [PXSourceListItem itemWithTitle:@"LIBRARY" identifier:nil];
+
+    PXSourceListItem* libraryItem = [PXSourceListItem itemWithTitle:@"LIBRARY" identifier:nil];
     libraryItem.children = @[[PXSourceListItem itemWithRepresentedObject:photosCollection icon:photosImage],
                              [PXSourceListItem itemWithRepresentedObject:eventsCollection icon:eventsImage],
                              [PXSourceListItem itemWithRepresentedObject:peopleCollection icon:peopleImage],
                              [PXSourceListItem itemWithRepresentedObject:placesCollection icon:placesImage]];
 
     PXSourceListItem *albumsItem = [PXSourceListItem itemWithTitle:@"ALBUMS" identifier:nil];
-    for (PhotoCollection *collection in @[snapsCollection, graduationCollection]) {
+    for( PhotoCollection* collection in @[snapsCollection, graduationCollection] )
+    {
         [albumsItem addChildItem:[PXSourceListItem itemWithRepresentedObject:collection icon:albumImage]];
     }
 
@@ -90,36 +95,38 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 }
 
 /* Convenience method for adding dummy Photo objects to a PhotoCollection instance. */
-- (void)addNumberOfPhotoObjects:(NSUInteger)numberOfObjects toCollection:(PhotoCollection *)collection
+
+- (void) addNumberOfPhotoObjects:(NSUInteger) numberOfObjects toCollection:(PhotoCollection*) collection
 {
-    NSMutableArray *photos = [[NSMutableArray alloc] init];
-    for (NSUInteger i = 0; i < numberOfObjects; ++i)
-        [photos addObject:[[Photo alloc] init]];
+    NSMutableArray* photos = [NSMutableArray new];
+    for( NSUInteger i = 0; i < numberOfObjects; ++i )
+        [photos addObject:[Photo new]];
     collection.photos = photos;
 }
 
 // Methods to avoid hardcoding subscripts into multiple places in the code.
-- (PXSourceListItem *)libraryItem
+
+- (PXSourceListItem*) libraryItem
 {
     return self.sourceListItems[0];
 }
 
-- (PXSourceListItem *)albumsItem
+- (PXSourceListItem*) albumsItem
 {
     return self.sourceListItems[1];
 }
 
 #pragma mark - Actions
 
-- (IBAction)addButtonAction:(id)sender
+- (IBAction) addButtonAction:(id) sender
 {
-    NSImage *albumImage = [NSImage imageNamed:@"album"];
-    [albumImage setTemplate:YES];
+    NSImage* albumImage = [NSImage imageNamed:@"album"];
+    albumImage.template = YES;
 
-    PhotoCollection *collection = [PhotoCollection collectionWithTitle:@"New Album" identifier:nil type:PhotoCollectionTypeUserCreated];
+    PhotoCollection* collection = [PhotoCollection collectionWithTitle:@"New Album" identifier:nil type:PhotoCollectionTypeUserCreated];
     [self.modelObjects addObject:collection];
 
-    PXSourceListItem *newItem = [PXSourceListItem itemWithRepresentedObject:collection icon:albumImage];
+    PXSourceListItem* newItem = [PXSourceListItem itemWithRepresentedObject:collection icon:albumImage];
     [self.albumsItem addChildItem:newItem];
 
     NSUInteger childIndex = [[self.albumsItem children] indexOfObject:newItem];
@@ -132,8 +139,8 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 
 - (IBAction)removeButtonAction:(id)sender
 {
-    PXSourceListItem *selectedItem = [self.sourceList itemAtRow:self.sourceList.selectedRow];
-    PXSourceListItem *parentItem = self.albumsItem;
+    PXSourceListItem* selectedItem = [self.sourceList itemAtRow:self.sourceList.selectedRow];
+    PXSourceListItem* parentItem = self.albumsItem;
 
     [self.sourceList removeItemsAtIndexes:[NSIndexSet indexSetWithIndex:[parentItem.children indexOfObject:selectedItem]]
                                  inParent:parentItem
@@ -147,7 +154,7 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 
 #pragma mark - PXSourceList Data Source
 
-- (NSUInteger)sourceList:(PXSourceList*)sourceList numberOfChildrenOfItem:(id)item
+- (NSUInteger) sourceList:(PXSourceList*) sourceList numberOfChildrenOfItem:(id) item
 {
     if (!item)
         return self.sourceListItems.count;
@@ -155,7 +162,7 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
     return [[item children] count];
 }
 
-- (id)sourceList:(PXSourceList*)aSourceList child:(NSUInteger)index ofItem:(id)item
+- (id) sourceList:(PXSourceList*) aSourceList child:(NSUInteger) index ofItem:(id) item
 {
     if (!item)
         return self.sourceListItems[index];
@@ -163,30 +170,31 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
     return [[item children] objectAtIndex:index];
 }
 
-- (BOOL)sourceList:(PXSourceList*)aSourceList isItemExpandable:(id)item
+- (BOOL) sourceList:(PXSourceList*) aSourceList isItemExpandable:(id) item
 {
     return [item hasChildren];
 }
 
 #pragma mark - PXSourceList Delegate
 
-- (BOOL)sourceList:(PXSourceList *)aSourceList isGroupAlwaysExpanded:(id)group
+- (BOOL) sourceList:(PXSourceList*) aSourceList isGroupAlwaysExpanded:(id) group
 {
     return YES;
 }
 
-- (NSView *)sourceList:(PXSourceList *)aSourceList viewForItem:(id)item
+- (NSView*) sourceList:(PXSourceList*) aSourceList viewForItem:(id) item
 {
-    PXSourceListTableCellView *cellView = nil;
-    if ([aSourceList levelForItem:item] == 0)
+    PXSourceListTableCellView* cellView = nil;
+    if( [aSourceList levelForItem:item] == 0 )
         cellView = [aSourceList makeViewWithIdentifier:@"HeaderCell" owner:nil];
     else
         cellView = [aSourceList makeViewWithIdentifier:@"MainCell" owner:nil];
 
-    PXSourceListItem *sourceListItem = item;
-    PhotoCollection *collection = sourceListItem.representedObject;
+    PXSourceListItem* sourceListItem = item;
+    PhotoCollection* collection = sourceListItem.representedObject;
 
     // Only allow us to edit the user created photo collection titles.
+
     BOOL isTitleEditable = [collection isKindOfClass:[PhotoCollection class]] && collection.type == PhotoCollectionTypeUserCreated;
     cellView.textField.editable = isTitleEditable;
     cellView.textField.selectable = isTitleEditable;
@@ -201,15 +209,16 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 
 - (void)sourceListSelectionDidChange:(NSNotification *)notification
 {
-    PXSourceListItem *selectedItem = [self.sourceList itemAtRow:self.sourceList.selectedRow];
+    PXSourceListItem* selectedItem = [self.sourceList itemAtRow:self.sourceList.selectedRow];
     BOOL removeButtonEnabled = NO;
     NSString *newLabel = @"";
-    if (selectedItem) {
+    if( selectedItem )
+    {
         // Only allow us to remove items in the 'albums' group.
         removeButtonEnabled = [[self.albumsItem children] containsObject:selectedItem];
 
         // We can use the underlying model object to do something based on the selection.
-        PhotoCollection *collection = selectedItem.representedObject;
+        PhotoCollection* collection = selectedItem.representedObject;
 
         if (collection.identifier)
             newLabel = [NSString stringWithFormat:@"'%@' collection selected.", collection.identifier];
@@ -226,19 +235,23 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 - (BOOL)sourceList:(PXSourceList*)aSourceList writeItems:(NSArray *)items toPasteboard:(NSPasteboard *)pboard
 {
     // Only allow user-created items (not those in "Library" to be moved around).
-    for (PXSourceListItem *item in items) {
-        PhotoCollection *collection = item.representedObject;
-        if (![collection isKindOfClass:[PhotoCollection class]] || collection.type != PhotoCollectionTypeUserCreated)
+
+    for( PXSourceListItem*item in items )
+    {
+        PhotoCollection* collection = item.representedObject;
+        if( ![collection isKindOfClass:[PhotoCollection class]] || collection.type != PhotoCollectionTypeUserCreated )
             return NO;
     }
 
     // We're dragging from and to the 'Albums' group.
-    PXSourceListItem *parentItem = self.albumsItem;
+
+    PXSourceListItem* parentItem = self.albumsItem;
 
     // For simplicity in this example, put the dragged indexes on the pasteboard. Since we use the representedObject
     // on SourceListItem, we cannot reliably archive it directly.
+
     NSMutableIndexSet *draggedChildIndexes = [NSMutableIndexSet indexSet];
-    for (PXSourceListItem *item in items)
+    for( PXSourceListItem* item in items )
         [draggedChildIndexes addIndex:[[parentItem children] indexOfObject:item]];
 
     [pboard declareTypes:@[draggingType] owner:self];
@@ -249,11 +262,12 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
 
 - (NSDragOperation)sourceList:(PXSourceList*)sourceList validateDrop:(id < NSDraggingInfo >)info proposedItem:(id)item proposedChildIndex:(NSInteger)index
 {
-    PXSourceListItem *albumsItem = self.albumsItem;
+    PXSourceListItem* albumsItem = self.albumsItem;
 
     // Only allow the items in the 'albums' group to be moved around. It can either be dropped on the group header, or inserted between other child items.
     // It can't be made the child of another item in this group, so the only valid case is when the proposedItem is the 'Albums' group item.
-    if (![item isEqual:albumsItem])
+
+    if( ![item isEqual:albumsItem] )
         return NSDragOperationNone;
 
     return NSDragOperationMove;
@@ -264,9 +278,10 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
     NSPasteboard *draggingPasteboard = info.draggingPasteboard;
     NSMutableIndexSet *draggedChildIndexes = [NSKeyedUnarchiver unarchiveObjectWithData:[draggingPasteboard dataForType:draggingType]];
 
-    PXSourceListItem *parentItem = self.albumsItem;
-    NSMutableArray *draggedItems = [NSMutableArray array];
-    [draggedChildIndexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+    PXSourceListItem* parentItem = self.albumsItem;
+    NSMutableArray* draggedItems = [NSMutableArray array];
+    [draggedChildIndexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop)
+    {
         [draggedItems addObject:[[parentItem children] objectAtIndex:idx]];
     }];
 
