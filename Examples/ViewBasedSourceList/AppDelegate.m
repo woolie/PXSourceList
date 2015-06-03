@@ -199,10 +199,13 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
     cellView.textField.editable = isTitleEditable;
     cellView.textField.selectable = isTitleEditable;
 
-    cellView.textField.stringValue = sourceListItem.title ? sourceListItem.title : [sourceListItem.representedObject title];
+    id representedObject = sourceListItem.representedObject;
+    cellView.textField.stringValue = sourceListItem.title ? sourceListItem.title : [representedObject title];
     cellView.imageView.image = [item icon];
-    cellView.badgeView.hidden = collection.photos.count == 0;
-    cellView.badgeView.badgeValue = collection.photos.count;
+
+    PXSourceListBadgeView* badgeView = cellView.badgeView;
+    badgeView.hidden = collection.photos.count == 0;
+    badgeView.badgeValue = collection.photos.count;
 
     return cellView;
 }
@@ -226,7 +229,8 @@ static NSString * const draggingType = @"SourceListExampleDraggingType";
             newLabel = @"User-created collection selected.";
     }
 
-    self.selectedItemLabel.stringValue = newLabel;
+    NSTextField* selectedItemLabel = self.selectedItemLabel;
+    selectedItemLabel.stringValue = newLabel;
     self.removeButton.enabled = removeButtonEnabled;
 }
 

@@ -15,7 +15,7 @@
 @property (assign) IBOutlet NSWindow *window;
 @property (assign) IBOutlet PXSourceList *sourceList;
 @property (assign) IBOutlet NSButton *removeButton;
-@property (weak, nonatomic) IBOutlet NSTextField *selectedItemLabel;
+@property (nonatomic, weak) IBOutlet NSTextField *selectedItemLabel;
 
 - (IBAction)addButtonAction:(id)sender;
 - (IBAction)removeButtonAction:(id)sender;
