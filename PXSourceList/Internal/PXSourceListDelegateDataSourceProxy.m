@@ -108,7 +108,9 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 
     // Only let the source list override NSOutlineView delegate and data source methods.
 
-    if( [self.sourceList respondsToSelector:aSelector] && ([__outlineViewDataSourceMethods containsObject:methodName] || [__outlineViewDelegateMethods containsObject:methodName]) )
+    PXSourceList* sourceList = self.sourceList;
+
+    if( [sourceList respondsToSelector:aSelector] && ([__outlineViewDataSourceMethods containsObject:methodName] || [__outlineViewDelegateMethods containsObject:methodName]) )
         return YES;
 
     if( [__requiredOutlineViewDataSourceMethods containsObject:methodName] )
@@ -120,7 +122,7 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
         return [self.dataSource respondsToSelector:aSelector];
 
     id forwardingObject = [self forwardingObjectForSelector:aSelector];
-    NSDictionary *forwardingInformation = [[self class] forwardingInformationForSelector:aSelector];
+    NSDictionary* forwardingInformation = [[self class] forwardingInformationForSelector:aSelector];
 
     if( !forwardingObject || !forwardingInformation )
         return NO;

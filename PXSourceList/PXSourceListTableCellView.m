@@ -18,13 +18,15 @@
 
     if( self.badgeView )
     {
-        [self.badgeView sizeToFit];
+        PXSourceListBadgeView* badgeView = self.badgeView;
+
+        [badgeView sizeToFit];
 
         NSRect bounds = self.bounds;
-        NSSize badgeSize = self.badgeView.frame.size;
-        self.badgeView.frame = NSMakeRect( NSMaxX( bounds ) - badgeSize.width,
-                                           NSMidY( bounds ) - round( badgeSize.height * 0.5 ),
-                                           badgeSize.width, badgeSize.height );
+        NSSize badgeSize = badgeView.frame.size;
+        badgeView.frame = NSMakeRect( NSMaxX( bounds ) - badgeSize.width,
+                                     NSMidY( bounds ) - round( badgeSize.height * 0.5 ),
+                                     badgeSize.width, badgeSize.height );
     }
 }
 
