@@ -351,36 +351,16 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 
 + (void) addCustomMethodNameMappings
 {
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:objectValueForTableColumn:byItem:)
-                                      toSelector:@selector(sourceList:objectValueForItem:)
-                        forwardedArgumentIndexes:@[@0, @2]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:setObjectValue:forTableColumn:byItem:)
-                                      toSelector:@selector(sourceList:setObjectValue:forItem:)
-                        forwardedArgumentIndexes:@[@0, @1, @3]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:viewForTableColumn:item:)
-                                      toSelector:@selector(sourceList:viewForItem:)
-                        forwardedArgumentIndexes:@[@0, @2]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:willDisplayCell:forTableColumn:item:)
-                                      toSelector:@selector(sourceList:willDisplayCell:forItem:)
-                        forwardedArgumentIndexes:@[@0, @1, @3]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:shouldEditTableColumn:item:)
-                                      toSelector:@selector(sourceList:shouldEditItem:)
-                        forwardedArgumentIndexes:@[@0, @2]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:toolTipForCell:rect:tableColumn:item:mouseLocation:)
-                                      toSelector:@selector(sourceList:toolTipForCell:rect:item:mouseLocation:)
-                        forwardedArgumentIndexes:@[@0, @1, @2, @4, @5]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:typeSelectStringForTableColumn:item:)
-                                      toSelector:@selector(sourceList:typeSelectStringForItem:)
-                        forwardedArgumentIndexes:@[@0, @2]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:shouldShowCellExpansionForTableColumn:item:)
-                                      toSelector:@selector(sourceList:shouldShowCellExpansionForItem:)
-                        forwardedArgumentIndexes:@[@0, @2]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:shouldTrackCell:forTableColumn:item:)
-                                      toSelector:@selector(sourceList:shouldTrackCell:forItem:)
-                        forwardedArgumentIndexes:@[@0, @1, @3]];
-    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:dataCellForTableColumn:item:)
-                                      toSelector:@selector(sourceList:dataCellForItem:)
-                        forwardedArgumentIndexes:@[@0, @2]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:objectValueForTableColumn:byItem:)           toSelector:@selector(sourceList:objectValueForItem:)                    forwardedArgumentIndexes:@[@0, @2]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:setObjectValue:forTableColumn:byItem:)       toSelector:@selector(sourceList:setObjectValue:forItem:)                forwardedArgumentIndexes:@[@0, @1, @3]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:viewForTableColumn:item:)                    toSelector:@selector(sourceList:viewForItem:)                           forwardedArgumentIndexes:@[@0, @2]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:willDisplayCell:forTableColumn:item:)        toSelector:@selector(sourceList:willDisplayCell:forItem:)               forwardedArgumentIndexes:@[@0, @1, @3]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:shouldEditTableColumn:item:)                 toSelector:@selector(sourceList:shouldEditItem:)                        forwardedArgumentIndexes:@[@0, @2]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:toolTipForCell:rect:tableColumn:item:mouseLocation:) toSelector:@selector(sourceList:toolTipForCell:rect:item:mouseLocation:) forwardedArgumentIndexes:@[@0, @1, @2, @4, @5]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:typeSelectStringForTableColumn:item:)        toSelector:@selector(sourceList:typeSelectStringForItem:)               forwardedArgumentIndexes:@[@0, @2]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:shouldShowCellExpansionForTableColumn:item:) toSelector:@selector(sourceList:shouldShowCellExpansionForItem:)        forwardedArgumentIndexes:@[@0, @2]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:shouldTrackCell:forTableColumn:item:)        toSelector:@selector(sourceList:shouldTrackCell:forItem:)               forwardedArgumentIndexes:@[@0, @1, @3]];
+    [self addCustomMethodNameMappingFromSelector:@selector(outlineView:dataCellForTableColumn:item:)                toSelector:@selector(sourceList:dataCellForItem:)                       forwardedArgumentIndexes:@[@0, @2]];
 }
 
 + (void) addCustomMethodNameMappingFromSelector:(SEL) fromSelector toSelector:(SEL) toSelector forwardedArgumentIndexes:(NSArray*) argumentIndexes
@@ -388,32 +368,6 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
     [[self methodForwardingMap] setObject:@{ forwardingMapForwardingMethodNameKey : NSStringFromSelector( toSelector ),
                                              forwardingMapForwardedArgumentIndexesKey : argumentIndexes }
                                    forKey:NSStringFromSelector( fromSelector )];
-}
-
-- (BOOL) getForwardingObject:(id*) outObject andForwardingSelector:(SEL*) outSelector forSelector:(SEL) selector
-{
-    NSDictionary* methodForwardingMap = [[self class] methodForwardingMap];
-    NSString* originalMethodName = NSStringFromSelector( selector );
-    NSDictionary* forwardingInfo = methodForwardingMap[originalMethodName];
-    if( !forwardingInfo )
-        return NO;
-
-    id forwardingObject;
-    if( [__outlineViewDelegateMethods containsObject:originalMethodName] )
-        forwardingObject = self.delegate;
-    else if( [__outlineViewDataSourceMethods containsObject:originalMethodName] )
-        forwardingObject = self.dataSource;
-
-    if( !forwardingObject )
-        return NO;
-
-    if( outObject )
-        *outObject = forwardingObject;
-
-    if( outSelector )
-        *outSelector = NSSelectorFromString(forwardingInfo[forwardingMapForwardingMethodNameKey]);
-
-    return YES;
 }
 
 + (NSArray*) fastPathForwardingDelegateMethods
