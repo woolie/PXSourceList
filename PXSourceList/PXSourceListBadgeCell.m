@@ -120,6 +120,8 @@ static const CGFloat kBadgeLeftAndRightPadding = 5.0;
                                            attributes:@{ NSFontAttributeName : badgeFont() }];
 }
 
+#if 0 // Deprecated. Consider using the View based PXSourceList.
+
 - (id) accessibilityAttributeValue:(NSString*) attribute
 {
     if( [attribute isEqualToString:NSAccessibilityValueAttribute] )
@@ -127,5 +129,7 @@ static const CGFloat kBadgeLeftAndRightPadding = 5.0;
     else
         return [super accessibilityAttributeValue:attribute];
 }
+
+#endif
 
 @end

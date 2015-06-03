@@ -21,7 +21,8 @@
 
 - (void) awakeFromNib
 {
-	[self.selectedItemLabel.stringValue = @"(none)";
+    NSTextField* selectedItemLabel = self.selectedItemLabel;
+	selectedItemLabel.stringValue = @"(none)";
 
 	self.sourceListItems = [NSMutableArray new];
 	
@@ -61,8 +62,9 @@
 	
 	[self.sourceListItems addObject:libraryItem];
 	[self.sourceListItems addObject:playlistsItem];
-	
-	[self.sourceList reloadData];
+
+    PXSourceList* sourceList = self.sourceList;
+	[sourceList reloadData];
 }
 
 #pragma mark - Source List Data Source Methods
@@ -152,8 +154,7 @@
 	return nil;
 }
 
-#pragma mark -
-#pragma mark Source List Delegate Methods
+#pragma mark - Source List Delegate Methods
 
 - (BOOL)sourceList:(PXSourceList*)aSourceList isGroupAlwaysExpanded:(id)group
 {
@@ -163,31 +164,35 @@
 	return NO;
 }
 
-
 - (void)sourceListSelectionDidChange:(NSNotification *)notification
 {
-	NSIndexSet *selectedIndexes = [self.sourceList selectedRowIndexes];
-	
-	//Set the label text to represent the new selection
+    PXSourceList* sourceList = self.sourceList;
+
+	NSIndexSet *selectedIndexes = [sourceList selectedRowIndexes];
+    NSTextField* selectedItemLabel = self.selectedItemLabel;
+
+    //Set the label text to represent the new selection
 	if([selectedIndexes count]>1)
-		[self.selectedItemLabel setStringValue:@"(multiple)"];
-	else if([selectedIndexes count]==1) {
-		NSString *identifier = [[self.sourceList itemAtRow:[selectedIndexes firstIndex]] identifier];
+    {
+		[selectedItemLabel setStringValue:@"(multiple)"];
+    }
+	else if([selectedIndexes count]==1)
+    {
+		NSString *identifier = [[sourceList itemAtRow:(NSInteger)[selectedIndexes firstIndex]] identifier];
 		
-		[self.selectedItemLabel setStringValue:identifier];
+		[selectedItemLabel setStringValue:identifier];
 	}
-	else {
-		[self.selectedItemLabel setStringValue:@"(none)"];
+	else
+    {
+		[selectedItemLabel setStringValue:@"(none)"];
 	}
 }
 
 
 - (void)sourceListDeleteKeyPressedOnRows:(NSNotification *)notification
 {
-	NSIndexSet *rows = [[notification userInfo] objectForKey:@"rows"];
-
 #if DEBUG
-	NSLog(@"Delete key pressed on rows %@", rows);
+	NSLog(@"Delete key pressed on rows %@", [[notification userInfo] objectForKey:@"rows"]);
 #endif
 
 	//Do something here
