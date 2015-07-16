@@ -37,6 +37,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 @interface PXSourceList ()
 @property (strong, nonatomic) PXSourceListDelegateDataSourceProxy* delegateDataSourceProxy;
 @property (strong, readonly) PXSourceListBadgeCell* reusableBadgeCell;
+@property (readonly) BOOL isViewBasedSourceList;
 @end
 
 #pragma mark -
@@ -117,13 +118,13 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
     {
         _iconSize = newIconSize;
 
-        CGFloat rowHeight = [self rowHeight];
+        CGFloat rowHeight = self.rowHeight;
 
         // Make sure icon height does not exceed row height; if so constrain, keeping width and height in proportion
 
         if( _iconSize.height > rowHeight )
         {
-            _iconSize.width = _iconSize.width * (rowHeight/_iconSize.height);
+            _iconSize.width = _iconSize.width * (rowHeight / _iconSize.height);
             _iconSize.height = rowHeight;
         }
     }
@@ -144,7 +145,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 
 - (void) setFloatsGroupRows:(BOOL) value
 {
-    [super setFloatsGroupRows:NO];
+    super.floatsGroupRows = NO;
 }
 
 #pragma mark - Data Management
@@ -296,7 +297,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 
 - (void) selectRowIndexes:(NSIndexSet*) indexes byExtendingSelection:(BOOL) extend
 {
-    NSUInteger numberOfIndexes = [indexes count];
+    NSUInteger numberOfIndexes = indexes.count;
 
     // Prevent empty selection if we don't want it
 
@@ -428,12 +429,12 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 {
     // If set to YES, this will cause display issues in Lion where the right part of the outline view is cut off
 
-    [self setAutoresizesOutlineColumn:NO];
+    self.autoresizesOutlineColumn = NO;
 }
 
 #pragma mark - Drawing
 
-- (void)drawRow:(NSInteger)rowIndex clipRect:(NSRect)clipRect
+- (void) drawRow:(NSInteger) rowIndex clipRect:(NSRect) clipRect
 {
     [super drawRow:rowIndex clipRect:clipRect];
 
@@ -450,7 +451,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
             if( [self.delegateDataSourceProxy sourceList:self itemHasIcon:item] )
             {
                 NSRect cellFrame = [self frameOfCellAtColumn:0 row:rowIndex];
-                NSSize iconSize = [self iconSize];
+                NSSize iconSize = self.iconSize;
                 NSRect iconRect = NSMakeRect( NSMinX(cellFrame) - iconSize.width - kIconSpacing, NSMidY(cellFrame) - (iconSize.height * 0.5), iconSize.width, iconSize.height);
 
                 if( [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:iconForItem:)] )
@@ -516,8 +517,8 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 
 - (void) keyDown:(NSEvent*) theEvent
 {
-    NSIndexSet* selectedIndexes = [self selectedRowIndexes];
-    NSString* keyCharacters = [theEvent characters];
+    NSIndexSet* selectedIndexes = self.selectedRowIndexes;
+    NSString* keyCharacters = theEvent.characters;
 
     // Make sure we have a selection
 
@@ -531,10 +532,10 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
             {
                 // Handle keyboard navigation across groups
 
-                if( [selectedIndexes count] == 1 && !(theEvent.modifierFlags & NSShiftKeyMask) )
+                if( selectedIndexes.count == 1 && !(theEvent.modifierFlags & NSShiftKeyMask) )
                 {
                     NSInteger delta = firstKey == NSDownArrowFunctionKey ? 1 : NSNotFound;  //Search "backwards" if up arrow, "forwards" if down
-                    NSInteger newRow = (NSInteger)[selectedIndexes firstIndex];
+                    NSInteger newRow = (NSInteger)selectedIndexes.firstIndex;
 
                     // Keep incrementing/decrementing the row until a non-header row is reached
 
@@ -578,7 +579,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 
     if( [self.delegateDataSourceProxy respondsToSelector:@selector(sourceList:menuForEvent:item:)] )
     {
-        NSPoint clickPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+        NSPoint clickPoint = [self convertPoint:theEvent.locationInWindow fromView:nil];
         NSInteger row = [self rowAtPoint:clickPoint];
         id clickedItem = [self itemAtRow:row];
         m = [self.delegateDataSourceProxy sourceList:self menuForEvent:theEvent item:clickedItem];

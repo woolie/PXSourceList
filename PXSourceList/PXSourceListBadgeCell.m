@@ -24,6 +24,10 @@ static inline NSFont*  badgeFont() { return [NSFont boldSystemFontOfSize:11.0]; 
 
 static const CGFloat kBadgeLeftAndRightPadding = 5.0;
 
+@interface PXSourceListBadgeCell()
+@property (nonatomic, strong, readonly) NSAttributedString* badgeString;
+@end
+
 @implementation PXSourceListBadgeCell
 
 - (instancetype) init
@@ -69,7 +73,7 @@ static const CGFloat kBadgeLeftAndRightPadding = 5.0;
                     isFocused = YES;
                     break;
                 }
-            } while( (view = [view superview]) );
+            } while( (view = view.superview) );
         }
 
         NSColor* textColor = badgeSelectedHiddenTextColor();
@@ -83,10 +87,10 @@ static const CGFloat kBadgeLeftAndRightPadding = 5.0;
     }
     else
     {
-		NSColor *textColor = textColor = self.textColor ? self.textColor : [NSColor whiteColor];;
+		NSColor *textColor = textColor = self.textColor ?: [NSColor whiteColor];
 
 		if( isMainWindowVisible )
-            backgroundColor = self.backgroundColor ? self.backgroundColor : badgeBackgroundColor();
+            backgroundColor = self.backgroundColor ?: badgeBackgroundColor();
 		else
 			backgroundColor = badgeHiddenBackgroundColor();
 

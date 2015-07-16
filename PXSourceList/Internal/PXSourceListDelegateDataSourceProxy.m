@@ -19,16 +19,16 @@
 static NSString* const forwardingMapForwardingMethodNameKey = @"methodName";
 static NSString* const forwardingMapForwardedArgumentIndexesKey = @"forwardedArgumentIndexes";
 
-static NSArray* __outlineViewDelegateMethods = nil;
-static NSArray* __outlineViewDataSourceMethods = nil;
-static NSArray* __requiredOutlineViewDataSourceMethods = nil;
+static NSArray* sOutlineViewDelegateMethods = nil;
+static NSArray* sOutlineViewDataSourceMethods = nil;
+static NSArray* sRequiredOutlineViewDataSourceMethods = nil;
 
 // Cache the PXSourceListDelegate and PXSourceListDataSource method names so that if these methods are invoked on
 // us, we can quickly forward them to the delegate and dataSource using -forwardingTargetForSelector: without going
 // through -forwardInvocation:.
 
-static NSArray* __fastPathForwardingDelegateMethods = nil;
-static NSArray* __fastPathForwardingDataSourceMethods = nil;
+static NSArray* sFastPathForwardingDelegateMethods = nil;
+static NSArray* sFastPathForwardingDataSourceMethods = nil;
 
 // We want to suppress the warnings for protocol methods not being implemented. As a proxy we will forward these
 // messages to the actual delegate and data source.
@@ -41,15 +41,15 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 {
     if( [self class] == [PXSourceListDelegateDataSourceProxy class] )
     {
-        __outlineViewDelegateMethods = px_methodNamesForProtocol(@protocol(NSOutlineViewDelegate));
-        __outlineViewDataSourceMethods = px_methodNamesForProtocol(@protocol(NSOutlineViewDataSource));
-        __fastPathForwardingDelegateMethods = [self fastPathForwardingDelegateMethods];
-        __fastPathForwardingDataSourceMethods = px_methodNamesForProtocol(@protocol(PXSourceListDataSource));
+        sOutlineViewDelegateMethods = px_methodNamesForProtocol(@protocol(NSOutlineViewDelegate));
+        sOutlineViewDataSourceMethods = px_methodNamesForProtocol(@protocol(NSOutlineViewDataSource));
+        sFastPathForwardingDelegateMethods = [self fastPathForwardingDelegateMethods];
+        sFastPathForwardingDataSourceMethods = px_methodNamesForProtocol(@protocol(PXSourceListDataSource));
 
-        __requiredOutlineViewDataSourceMethods = @[NSStringFromSelector(@selector(outlineView:numberOfChildrenOfItem:)),
-                                                   NSStringFromSelector(@selector(outlineView:child:ofItem:)),
-                                                   NSStringFromSelector(@selector(outlineView:isItemExpandable:)),
-                                                   NSStringFromSelector(@selector(outlineView:objectValueForTableColumn:byItem:))];
+        sRequiredOutlineViewDataSourceMethods = @[NSStringFromSelector(@selector(outlineView:numberOfChildrenOfItem:)),
+                                                  NSStringFromSelector(@selector(outlineView:child:ofItem:)),
+                                                  NSStringFromSelector(@selector(outlineView:isItemExpandable:)),
+                                                  NSStringFromSelector(@selector(outlineView:objectValueForTableColumn:byItem:))];
 
         // Add the custom mappings first before we add the 'regular' mappings.
 
@@ -110,15 +110,15 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 
     PXSourceList* sourceList = self.sourceList;
 
-    if( [sourceList respondsToSelector:aSelector] && ([__outlineViewDataSourceMethods containsObject:methodName] || [__outlineViewDelegateMethods containsObject:methodName]) )
+    if( [sourceList respondsToSelector:aSelector] && ([sOutlineViewDataSourceMethods containsObject:methodName] || [sOutlineViewDelegateMethods containsObject:methodName]) )
         return YES;
 
-    if( [__requiredOutlineViewDataSourceMethods containsObject:methodName] )
+    if( [sRequiredOutlineViewDataSourceMethods containsObject:methodName] )
         return YES;
 
-    if( [__fastPathForwardingDelegateMethods containsObject:methodName] )
+    if( [sFastPathForwardingDelegateMethods containsObject:methodName] )
         return [self.delegate respondsToSelector:aSelector];
-    if( [__fastPathForwardingDataSourceMethods containsObject:methodName] )
+    if( [sFastPathForwardingDataSourceMethods containsObject:methodName] )
         return [self.dataSource respondsToSelector:aSelector];
 
     id forwardingObject = [self forwardingObjectForSelector:aSelector];
@@ -143,9 +143,9 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 
     struct objc_method_description description = { NULL, NULL };
 
-    if( [__outlineViewDelegateMethods containsObject:methodName] )
+    if( [sOutlineViewDelegateMethods containsObject:methodName] )
         description = px_methodDescriptionForProtocolMethod( @protocol(NSOutlineViewDelegate), selector );
-    else if( [__outlineViewDataSourceMethods containsObject:methodName] )
+    else if( [sOutlineViewDataSourceMethods containsObject:methodName] )
         description = px_methodDescriptionForProtocolMethod( @protocol(NSOutlineViewDataSource), selector );
 
     if( description.name == NULL && description.types == NULL )
@@ -188,7 +188,7 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
             // Catch the case where we have advertised ourselves as responding to a selector required by NSOutlineView
             // for a valid dataSource but the corresponding PXSourceListDataSource method isn't implemented by the dataSource.
 
-            if( !([__requiredOutlineViewDataSourceMethods containsObject:NSStringFromSelector(sourceSelector)] &&
+            if( !([sRequiredOutlineViewDataSourceMethods containsObject:NSStringFromSelector(sourceSelector)] &&
                   ![self.dataSource respondsToSelector:forwardingSelector]) )
             {
                 // Modify the arguments in the invocation if the source and target selector arguments are different.
@@ -238,10 +238,10 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 {
     NSString* methodName = NSStringFromSelector( aSelector );
 
-    if( [__fastPathForwardingDelegateMethods containsObject:methodName] )
+    if( [sFastPathForwardingDelegateMethods containsObject:methodName] )
         return self.delegate;
 
-    if( [__fastPathForwardingDataSourceMethods containsObject:methodName] )
+    if( [sFastPathForwardingDataSourceMethods containsObject:methodName] )
         return self.dataSource;
 
     return nil;
@@ -314,10 +314,10 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 
 - (id) forwardingObjectForSelector:(SEL) selector
 {
-    if( [__outlineViewDataSourceMethods containsObject:NSStringFromSelector(selector)] )
+    if( [sOutlineViewDataSourceMethods containsObject:NSStringFromSelector(selector)] )
         return self.dataSource;
 
-    if( [__outlineViewDelegateMethods containsObject:NSStringFromSelector(selector)] )
+    if( [sOutlineViewDelegateMethods containsObject:NSStringFromSelector(selector)] )
         return self.delegate;
 
     return nil;
@@ -417,28 +417,28 @@ static NSArray* __fastPathForwardingDataSourceMethods = nil;
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemWillExpandNotification
                                                         object:self.sourceList
-                                                      userInfo:[notification userInfo]];
+                                                      userInfo:notification.userInfo];
 }
 
 - (void) outlineViewItemDidExpand:(NSNotification*) notification
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemDidExpandNotification
                                                         object:self.sourceList
-                                                      userInfo:[notification userInfo]];
+                                                      userInfo:notification.userInfo];
 }
 
 - (void) outlineViewItemWillCollapse:(NSNotification*) notification
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemWillCollapseNotification
                                                         object:self.sourceList
-                                                      userInfo:[notification userInfo]];
+                                                      userInfo:notification.userInfo];
 }
 
 - (void) outlineViewItemDidCollapse:(NSNotification*) notification
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:PXSLItemDidCollapseNotification
                                                         object:self.sourceList
-                                                      userInfo:[notification userInfo]];
+                                                      userInfo:notification.userInfo];
 }
 
 @end
