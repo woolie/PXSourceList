@@ -344,7 +344,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
 
     if( [self levelForRow:row] > 0 )
     {
-        frame.origin.x = [self levelForRow:row] * [self indentationPerLevel];
+        frame.origin.x = [self levelForRow:row] * self.indentationPerLevel;
     }
 
     return frame;
@@ -385,7 +385,7 @@ NSString* const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKey
     }
     else
     {
-        CGFloat leftIndent = [self levelForRow:row]*[self indentationPerLevel] + kDisclosureTriangleSpace;
+        CGFloat leftIndent = [self levelForRow:row] * self.indentationPerLevel + kDisclosureTriangleSpace;
 
         // Calculate space left for a badge if need be
 

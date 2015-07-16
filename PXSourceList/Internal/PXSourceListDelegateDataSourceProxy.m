@@ -325,7 +325,7 @@ static NSArray* sFastPathForwardingDataSourceMethods = nil;
 
 + (NSDictionary*) forwardingInformationForSelector:(SEL) selector
 {
-    return [[self methodForwardingMap] objectForKey:NSStringFromSelector(selector)];
+    return [self methodForwardingMap][NSStringFromSelector(selector)];
 }
 
 // These methods won't have mappings created for them.
@@ -365,9 +365,8 @@ static NSArray* sFastPathForwardingDataSourceMethods = nil;
 
 + (void) addCustomMethodNameMappingFromSelector:(SEL) fromSelector toSelector:(SEL) toSelector forwardedArgumentIndexes:(NSArray*) argumentIndexes
 {
-    [[self methodForwardingMap] setObject:@{ forwardingMapForwardingMethodNameKey : NSStringFromSelector( toSelector ),
-                                             forwardingMapForwardedArgumentIndexesKey : argumentIndexes }
-                                   forKey:NSStringFromSelector( fromSelector )];
+    [self methodForwardingMap][NSStringFromSelector( fromSelector )] = @{ forwardingMapForwardingMethodNameKey : NSStringFromSelector( toSelector ),
+                                                                          forwardingMapForwardedArgumentIndexesKey : argumentIndexes };
 }
 
 + (NSArray*) fastPathForwardingDelegateMethods

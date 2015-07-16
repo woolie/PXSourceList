@@ -30,7 +30,7 @@ NSArray* px_allProtocolMethods( Protocol* protocol )
         {
             struct objc_method_description methodDescription = methodDescriptions[j];
             [methodList addObject:@{ px_protocolMethodNameKey : px_methodNameForSelector( methodDescription.name ),
-                                     px_protocolMethodArgumentTypesKey : [NSString stringWithUTF8String:methodDescription.types],
+                                     px_protocolMethodArgumentTypesKey : @(methodDescription.types),
                                      px_protocolIsRequiredMethodKey : @(isRequiredMethod) }];
         }
 
