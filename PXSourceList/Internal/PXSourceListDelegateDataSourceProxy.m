@@ -251,11 +251,11 @@ static NSArray* sFastPathForwardingDataSourceMethods = nil;
 
 + (NSMutableDictionary*) methodForwardingMap
 {
-    static NSMutableDictionary* _methodForwardingMap = nil;
-    if( !_methodForwardingMap )
-        _methodForwardingMap = [NSMutableDictionary new];
+    static NSMutableDictionary* sMethodForwardingMap = nil;
+    if( !sMethodForwardingMap )
+        sMethodForwardingMap = [NSMutableDictionary new];
 
-    return _methodForwardingMap;
+    return sMethodForwardingMap;
 }
 
 + (void) addEntriesToMethodForwardingMap:(NSDictionary*) entries
