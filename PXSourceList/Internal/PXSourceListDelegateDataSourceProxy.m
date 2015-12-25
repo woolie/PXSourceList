@@ -218,7 +218,7 @@ static NSArray* sFastPathForwardingDataSourceMethods = nil;
                             NSUInteger argumentSize = 0;
                             NSGetSizeAndAlignment( [methodSignature getArgumentTypeAtIndex:invocationArgumentIndex], &argumentSize, NULL );
 
-                            void* argument = malloc( argumentSize );
+                            void* argument = malloc( argumentSize * sizeof( uint8_t ) );
                             [invocation getArgument:argument atIndex:forwardedArgumentIndex + 2]; // Take self and _cmd into account again.
                             [invocation setArgument:argument atIndex:(NSInteger)invocationArgumentIndex];
                             free( argument );
